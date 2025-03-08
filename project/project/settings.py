@@ -134,3 +134,4 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'student_management.User'

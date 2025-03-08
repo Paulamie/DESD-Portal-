@@ -1,0 +1,11 @@
+{% extends 'student_management/base.html' %}
+
+{% block title %}Welcome to Uni Hub{% endblock %}
+
+{% block content %}
+    <h2>Welcome to Uni Hub</h2>
+    <p>Please log in or sign up to continue.</p>
+    
+    <a href="{% url 'login' %}" class="btn">Login</a>
+    <a href="{% url 'register' %}" class="btn">Sign Up</a>
+{% endblock %}
