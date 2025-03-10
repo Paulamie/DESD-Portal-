@@ -1,0 +1,21 @@
+# Ignore database files
+*.sqlite3
+*.db
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/
+
+# Ignore Django migration files
+student_management/migrations/*
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore environment variables
+.env
+
+# Ignore static and media files (if applicable)
+staticfiles/
+media/
+
