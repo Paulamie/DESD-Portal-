@@ -54,3 +54,63 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+class Community(models.Model):
+    community_id = models.AutoField(primary_key=True)
+    com_leader = models.CharField(max_length=255)
+    community_name = models.CharField(max_length=100)
+    description = models.TextField()
+
+    class Meta:
+        db_table = "Community"
+
+    def __str__(self):
+        return self.community_name
+
+
+class Society(models.Model):
+    society_id = models.AutoField(primary_key=True)
+    soc_leader = models.CharField(max_length=255)
+    society_name = models.CharField(max_length=100)
+    society_location = models.CharField(max_length=255)
+    description = models.TextField()
+
+    class Meta:
+        db_table = "Societies"
+
+    def __str__(self):
+        return self.society_name
+
+
+class Event(models.Model):
+    event_id = models.AutoField(primary_key=True) 
+    event_name = models.CharField(max_length=100)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    info = models.TextField()
+    community = models.ForeignKey(Community, on_delete=models.SET_NULL, null=True, blank=True)
+    society = models.ForeignKey(Society, on_delete=models.SET_NULL, null=True, blank=True)
+
+    LOCATION_CHOICES = [
+        ('Online', 'Online'),
+        ('On-Campus', 'On-Campus'),
+        ]
+    location_type = models.CharField(max_length=20, choices=LOCATION_CHOICES, default='On-Campus')
+    actual_location = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = "Event"
+
+    def __str__(self):
+        return f"{self.event_name} ({self.location_type})"
+
+class EventDetails(models.Model):
+    event_details_id = models.AutoField(primary_key=True)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "event_details"
+        
+    def __str__(self):
+        return self.event_details_id
