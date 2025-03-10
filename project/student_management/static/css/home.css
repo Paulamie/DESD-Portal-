@@ -60,6 +60,12 @@ header {
     width: 100%;
 }
 
+.search-container {
+    display: flex;
+    margin-left: auto; 
+    gap:30px;
+}
+
 .search-icon {
     width: 40px !important;  
     height: auto !important;
