@@ -86,6 +86,8 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
+
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -126,14 +128,25 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'DESD',  
+#         'USER': 'root',  
+#         'PASSWORD': 'yourpassword',  
+#         'HOST': 'localhost',  
+#         'PORT': '3302', 
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'DESD',  
-        'USER': 'root',  
-        'PASSWORD': 'yourpassword',  
-        'HOST': 'localhost',  
-        'PORT': '3302', 
+        'NAME': 'DESD',
+        'USER' : 'root',
+        'PASSWORD' : '<An4>gonca',
+        'HOST' : '127.0.0.1',
+        'PORT' : '3306',
     }
 }
 
