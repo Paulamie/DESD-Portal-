@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout 
+from django.shortcuts import render, redirect,get_object_or_404
+from django.contrib.auth import login, authenticate, logout
 from .forms import UserRegisterForm
 from django.contrib.auth.decorators import login_required
-from .models import Event,EventDetails
+from .models import Event,EventDetails,User
+from django.contrib import messages
 
 def homepage(request):
     if request.user.is_authenticated:
@@ -44,6 +45,44 @@ def events(request):
     #get all the events 
     events = Event.objects.all()  
     return render(request, 'student_management/event.html', {'events': events})
+
+def booked_events(request):
+    user = request.user  #get the current user 
+    booked = EventDetails.objects.filter(user_id=request.user.user_id)
+    return render(request, "student_management/booked_event.html", {'booked': booked})
+
+def booked(request, event_id):
+    event = get_object_or_404(Event, event_id=event_id)  
+    
+    print(f"User Object: {request.user}")  # Debugging line
+    print(f"User PK: {request.user.pk}")  # Debugging line
+
+    # Ensure the user exists in the database
+    user = get_object_or_404(User, user_id=request.user.pk)
+
+    # Check if the user has already booked this event
+    existing_booking = EventDetails.objects.filter(event=event, user=user).exists()
+
+    if not existing_booking:
+        EventDetails.objects.create(event=event, user=user)
+
+    return redirect('booked_events')  
+
+
+def cancel_booking(request, event_id):
+    event = get_object_or_404(Event, event_id=event_id)
+    user = get_object_or_404(User, user_id=request.user.pk)
+
+    booking = EventDetails.objects.filter(event=event, user=user)
+    
+    if booking.exists():
+        booking.delete()
+        messages.success(request, "Your booking has been canceled successfully.")
+    else:
+        messages.error(request, "You don't have a booking for this event.")
+
+    return redirect('booked_events') 
+
 
 # def event_detail(request,user_id):
 # #     # booked = EventDetails.objects.all() (this would get it for all)

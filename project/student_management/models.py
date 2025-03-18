@@ -90,7 +90,7 @@ class Event(models.Model):
     info = models.TextField()
     community = models.ForeignKey(Community, on_delete=models.SET_NULL, null=True, blank=True)
     society = models.ForeignKey(Society, on_delete=models.SET_NULL, null=True, blank=True)
-
+    
     LOCATION_CHOICES = [
         ('Online', 'Online'),
         ('On-Campus', 'On-Campus'),
@@ -107,7 +107,7 @@ class Event(models.Model):
 class EventDetails(models.Model):
     event_details_id = models.AutoField(primary_key=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id')  # Explicitly reference user_id
 
     class Meta:
         db_table = "event_details"

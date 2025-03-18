@@ -121,7 +121,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -147,6 +147,11 @@ DATABASES = {
         'PASSWORD' : '<An4>gonca',
         'HOST' : '127.0.0.1',
         'PORT' : '3306',
+        'NAME': 'DESD1',  
+        'USER': 'root',  
+        'PASSWORD': 'yourpassword',  
+        'HOST': 'localhost',  
+        'PORT': '3302', 
     }
 }
 
