@@ -254,7 +254,10 @@ body {
     font-size: 16px;
     font-weight: bold;
     transition: background 0.3s ease; 
-    border-color: none;
+    border: none;
+}
+.booked:hover {
+    background-color: #06dcf4;
 }
 
 .cancel-button{
@@ -266,6 +269,8 @@ body {
     border-radius: 6px; 
     text-decoration: none;
     font-size: 16px;
+    border: none;
+    border-color: none;
     font-weight: bold;
     transition: background 0.3s ease; 
 }
