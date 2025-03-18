@@ -243,6 +243,20 @@ body {
     margin: 40px 25px;
 }
 
+.booked{
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 15px;
+    background-color: #12A3B2; 
+    color: white;
+    border-radius: 6px; 
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.3s ease; 
+    border-color: none;
+}
+
 .cancel-button{
     display: inline-block;
     margin-top: 15px;

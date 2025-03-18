@@ -142,11 +142,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'DESD',
-        'USER' : 'root',
-        'PASSWORD' : '<An4>gonca',
-        'HOST' : '127.0.0.1',
-        'PORT' : '3306',
         'NAME': 'DESD1',  
         'USER': 'root',  
         'PASSWORD': 'yourpassword',  

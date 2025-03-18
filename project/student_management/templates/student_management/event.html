@@ -38,7 +38,7 @@
     <div class="outer-container">
     <div class="main-content"> 
         <h1>Upcoming Events</h1>
-        <a href="{% url 'booked_events'%}"><button>My Booked Events</button></a>
+        <a href="{% url 'booked_events'%}"><button class='booked'>My Booked Events</button></a>
         <div class="card-container">
             {% for event in events %}
                 <div class="card">
