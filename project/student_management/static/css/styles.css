@@ -1,0 +1,31 @@
+.profile-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.profile-sidebar {
+    width: 20%;
+    background: #f0f0f0;
+    padding: 10px;
+    text-align: center;
+}
+
+.profile-main {
+    width: 55%;
+    padding: 10px;
+}
+
+.profile-pic {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
+
+.post {
+    background: #00d4ff;
+    padding: 10px;
+    margin: 5px 0;
+    text-align: center;
+}
+

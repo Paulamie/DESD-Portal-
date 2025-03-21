@@ -4,6 +4,8 @@ from .forms import UserRegisterForm
 from django.contrib.auth.decorators import login_required
 from .models import Event,EventDetails,User
 from django.contrib import messages
+# from django.conf import settings  # import settings to access AUTH_USER_MODEL
+
 
 def homepage(request):
     if request.user.is_authenticated:
@@ -46,6 +48,12 @@ def events(request):
     events = Event.objects.all()  
     return render(request, 'student_management/event.html', {'events': events})
 
+# class EventListView(ListView):
+#     model = Event
+#     context_object_name = 'events'  
+#     template_name = 'student_management/event.html'  
+
+
 def booked_events(request):
     user = request.user  #get the current user 
     booked = EventDetails.objects.filter(user_id=request.user.user_id)
@@ -83,6 +91,36 @@ def cancel_booking(request, event_id):
 
     return redirect('booked_events') 
 
+# from django.shortcuts import render, redirect
+# from django.contrib.auth.decorators import login_required
+# from .models import UserProfile, Interest, Club, Community, Friendship
+# from .forms import UserUpdateForm, ProfileUpdateForm
+
+
+# @login_required
+# def profile(request):
+#     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+#     if request.method == "POST":
+#         user_form = UserUpdateForm(request.POST, instance=request.user)
+#         profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=user_profile)
+
+#         if user_form.is_valid() and profile_form.is_valid():
+#             user_form.save()
+#             profile_form.save()
+#             return redirect('profile')
+#     else:
+#         user_form = UserUpdateForm(instance=request.user)
+#         profile_form = ProfileUpdateForm(instance=user_profile)
+
+#     context = {
+#         'user_form': user_form,
+#         'profile_form': profile_form,
+#         'friends': Friendship.objects.filter(user=request.user),
+#         'clubs': user_profile.clubs.all(),
+#         'communities': user_profile.communities,  # Fixed: no `.all()` since it's a ForeignKey
+#     }
+#     return render(request, 'student_management/profile.html', context)
 
 # def event_detail(request,user_id):
 # #     # booked = EventDetails.objects.all() (this would get it for all)

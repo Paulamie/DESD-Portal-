@@ -1,0 +1,55 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+
+<div class="profile-container">
+    <div class="profile-sidebar">
+        {% if user.userprofile.profile_picture %}
+            <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile Picture" class="profile-pic">
+        {% endif %}
+        <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+        <p>{{ user.userprofile.course }}</p>
+        <a href="{% url 'profile' %}">Edit Profile</a>
+    </div>
+
+    <div class="profile-main">
+        <h2>Latest Posts</h2>
+        <div class="post">Community Post example</div>
+        <div class="post">Club Post example</div>
+        <div class="post">Friend’s Post example</div>
+
+        <h3>Update Your Profile</h3>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ user_form.as_p }}
+            {{ profile_form.as_p }}
+            <button type="submit">Save</button>
+        </form>
+    </div>
+
+    <div class="profile-sidebar">
+        <h3>Your Friends</h3>
+        {% for friend in friends %}
+            {% for f in friend.friends.all %}
+                <p>{{ f.email }}</p>
+            {% endfor %}
+        {% empty %}
+            <p>No friends added yet.</p>
+        {% endfor %}
+
+        <h3>Your Community</h3>
+        {% if communities %}
+            <p>{{ communities.community_name }}</p>
+        {% else %}
+            <p>Not part of any community yet.</p>
+        {% endif %}
+
+        <h3>Your Clubs</h3>
+        {% for club in clubs %}
+            <p>{{ club.name }}</p>
+        {% empty %}
+            <p>Not part of any club yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
