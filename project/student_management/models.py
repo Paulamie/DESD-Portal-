@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from django.conf import settings
 
 
 # Custom User Manager
@@ -116,10 +115,8 @@ class EventDetails(models.Model):
     def __str__(self):
         return self.event_details_id
 
-# from django.db import models
-# from django.contrib.auth.models import User
-
 # class Interest(models.Model):
+    #should have primary key id 
 #     name = models.CharField(max_length=100)
 
 #     def __str__(self):
@@ -127,6 +124,7 @@ class EventDetails(models.Model):
 
 
 # class Club(models.Model):
+# this is not needed it is the societies one 
 #     name = models.CharField(max_length=100)
 #     description = models.TextField()
 
@@ -139,8 +137,8 @@ class EventDetails(models.Model):
 #     course = models.CharField(max_length=100, blank=True, null=True)
 #     bio = models.TextField(blank=True, null=True)
 #     profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
-#     interests = models.ManyToManyField(Interest, blank=True)
-#     clubs = models.ManyToManyField(Club, blank=True)
+#     interests = models.ManyToManyField(Interest, blank=True) 
+#     clubs = models.ManyToManyField(Club, blank=True) refer to the socieites model 
 #     communities = models.ForeignKey(Community, on_delete=models.SET_NULL, null=True, blank=True)
 
 #     def __str__(self):
