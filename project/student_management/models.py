@@ -115,14 +115,13 @@ class EventDetails(models.Model):
     def __str__(self):
         return self.event_details_id
 
-# class Interest(models.Model):
-    #should have primary key id 
-#     name = models.CharField(max_length=100)
+class Interest(models.Model):
+    interest_id = models.AutoField(primary_key=True)  # Automatically incrementing primary key
+    interest_name = models.CharField(max_length=100)  # Field for storing interest name
 
-#     def __str__(self):
-#         return self.name
-
-
+    def __str__(self):
+        return self.interest_name
+    
 # class Club(models.Model):
 # this is not needed it is the societies one 
 #     name = models.CharField(max_length=100)

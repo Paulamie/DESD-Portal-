@@ -45,7 +45,7 @@ def logout_view(request):
 
 def events(request):
     #get all the events 
-    events = Event.objects.all()  
+    events = Event.objects.all().order_by('start_time')    
     return render(request, 'student_management/event.html', {'events': events})
 
 # class EventListView(ListView):
@@ -93,7 +93,7 @@ def cancel_booking(request, event_id):
 
 # from django.shortcuts import render, redirect
 # from django.contrib.auth.decorators import login_required
-# from .models import UserProfile, Interest, Club, Community, Friendship
+# from .models import UserProfile, Interest, Societies, Community, Friendship
 # from .forms import UserUpdateForm, ProfileUpdateForm
 
 
