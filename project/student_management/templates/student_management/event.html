@@ -16,6 +16,7 @@
                 <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="Site Banner"  width="100%">
             </a>
             <ul class="nav-links">
+                <!-- Navbar links -->
                 {% comment %} <li><a href="{% url 'home' %}">Homepage</a></li> {% endcomment %}
                 <li><a href="{% url 'events' %}">Events</a></li>
                 <li><a href="#">Societies</a></li>
@@ -23,6 +24,7 @@
                 <li><a href="#">Friends</a></li>
                 {% comment %} <li><a href="#">Profile</a></li> {% endcomment %}
 
+                <!-- Checks if user is logged if logged in option to logout-->
                {% if user.is_authenticated %}
                     <li><a href="{% url 'logout' %}"> Logout</a></li>
                 {% else %}
@@ -40,6 +42,7 @@
         <h1>Upcoming Events</h1>
         <a href="{% url 'booked_events'%}"><button class='booked'>My Booked Events</button></a>
         <div class="card-container">
+            <!-- for loop from the event from view from database to display events -->
             {% for event in events %}
                 <div class="card">
                     <div class="event-header">
@@ -51,21 +54,26 @@
                         {% endif %}| {{ event.start_time|date:"j F Y | H:i" }} - {{ event.end_time|date:"H:i"  }}</strong></p>
                     </div>
 
+                    <!-- if event is online show online label if not display on-campus -->
                     <span class="location-type {% if event.location_type == 'Online' %}online-label{% else %}on-campus-label{% endif %}">
                         {{ event.location_type }}
                     </span>
-                    
+                    <!-- display event info in gray  -->
                     <div class="event-body">
                         <p class="event-description">{{ event.info }}</p>
                     </div>
-    
+
+                    <!-- If location type online then join button is shown  -->
+                        <!-- takes to the booked page as confirmation takes the event_id and stores it in event_details -->
                         {% if event.location_type == "Online" %}
                         <a href="{% url 'booked' event.event_id %}" class="join-button" onclick="showOnlineLocation('{{ event.actual_location }}', this)">Join Now</a>
                     {% else %}
+                    <!-- else book button would show and when pressed would take my booked page and show the event card-->
                     <a href="{% url 'booked' event.event_id %}" class="book-button">Book In</a>
                     {% endif %}
                 </div>
             {% empty %}
+            <!-- no events would show no upcoming events text -->
                 <p>No upcoming events.</p>
             {% endfor %}
         </div>

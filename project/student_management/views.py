@@ -44,7 +44,7 @@ def logout_view(request):
     return redirect('homepage')
 
 def events(request):
-    #get all the events 
+    #get all the events and order by start date and time in chronlogical order
     events = Event.objects.all().order_by('start_time')    
     return render(request, 'student_management/event.html', {'events': events})
 
@@ -56,6 +56,7 @@ def events(request):
 
 def booked_events(request):
     user = request.user  #get the current user 
+    #filters the event details based on user_id logged in 
     booked = EventDetails.objects.filter(user_id=request.user.user_id)
     return render(request, "student_management/booked_event.html", {'booked': booked})
 
@@ -71,25 +72,70 @@ def booked(request, event_id):
     # Check if the user has already booked this event
     existing_booking = EventDetails.objects.filter(event=event, user=user).exists()
 
+    #if it doesnt exist would add it to the database
     if not existing_booking:
         EventDetails.objects.create(event=event, user=user)
 
+    # redirect to the my booked events page
     return redirect('booked_events')  
 
 
 def cancel_booking(request, event_id):
+    #get the event and user models event_id and their user_id 
     event = get_object_or_404(Event, event_id=event_id)
     user = get_object_or_404(User, user_id=request.user.pk)
 
+    #filter both the event_id and user_id
     booking = EventDetails.objects.filter(event=event, user=user)
     
+    #if found 
     if booking.exists():
+        #delete the booking and display message
         booking.delete()
         messages.success(request, "Your booking has been canceled successfully.")
     else:
+        #else display this
         messages.error(request, "You don't have a booking for this event.")
 
+    #redirect to my_booked events page
     return redirect('booked_events') 
+
+# from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.response import Response
+# from rest_framework.views import APIView
+# from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework.authtoken.views import ObtainAuthToken
+# from rest_framework.response import Response
+# from rest_framework.authtoken.models import Token
+
+
+# # Example of a protected view using JWT authentication
+# class Home(APIView):
+#     authentication_classes = [JWTAuthentication]
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         content = {'message': 'Hello, World!'}
+#         return Response(content)
+
+# from rest_framework.authtoken.views import ObtainAuthToken
+# from rest_framework.response import Response
+# from rest_framework.authtoken.models import Token
+
+# class CustomAuthToken(ObtainAuthToken):
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.serializer_class(data=request.data,
+#                                            context={'request': request})
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.validated_data['user']
+#         token, created = Token.objects.get_or_create(user=user)
+
+#         return Response({
+#             'token': token.key,
+#             'user_id': user.user_id,  # Use `user_id` instead of `id` if it's your custom field
+#             'email': user.email
+#         })
 
 # from django.shortcuts import render, redirect
 # from django.contrib.auth.decorators import login_required
@@ -122,15 +168,3 @@ def cancel_booking(request, event_id):
 #     }
 #     return render(request, 'student_management/profile.html', context)
 
-# def event_detail(request,user_id):
-# #     # booked = EventDetails.objects.all() (this would get it for all)
-# #     booked= EventDetails.objects.get(user=request.user) #gets the specific event details for a specific user
-# #     event = Event.objects.filter(event_id=event_id).first() 
-# #     booked= EventDetails.objects.filter(user_id=user_id).select_related("event")
-# #     # return render(request, "event_details.html", {"event": event,"booked_users": booked_users,})
-# #     return render(request,"booked_events.html", {'booked': booked})
-
-#     booked= EventDetails.objects.select_related('event').filter(user_id=user_id)
-#     return render(request,"booked_events.html", {'booked': booked})
-# #would join the EventDetails table with events (select_related)
-# #filter would take the user_id 
