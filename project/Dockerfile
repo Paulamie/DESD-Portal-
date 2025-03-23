@@ -1,9 +1,16 @@
-FROM python:3.10-slim
+FROM python:3.10-bullseye
 
 # Install system dependencies
-RUN apt-get update \
-    && apt-get install -y build-essential libssl-dev libffi-dev python3-dev libmysqlclient-dev \
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
+    libmariadb-dev \
+    libmariadb-dev-compat \
     && apt-get clean
+
 
 # Set work directory
 WORKDIR /app
