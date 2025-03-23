@@ -1,15 +1,10 @@
-FROM python:3.10-bullseye
+FROM python:3.10-slim
 
 # Install system dependencies
-RUN apt-get update && \
-    apt-get install -y \
-    build-essential \
-    libssl-dev \
-    libffi-dev \
-    python3-dev \
-    libmariadb-dev \
-    libmariadb-dev-compat \
+RUN apt-get update \
+    && apt-get install -y build-essential libssl-dev libffi-dev python3-dev default-libmysqlclient-dev \
     && apt-get clean
+
 
 
 # Set work directory
