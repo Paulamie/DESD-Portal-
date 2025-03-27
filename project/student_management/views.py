@@ -2,9 +2,12 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from .forms import UserRegisterForm,CommunityForm
 from django.contrib.auth.decorators import login_required
-from .models import Event,EventDetails,User
+from .models import Event,EventDetails,User,CommunityRequest
 from django.contrib import messages
-# from django.conf import settings  # import settings to access AUTH_USER_MODEL
+from django.views.generic.edit import CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from django.urls import reverse_lazy
 
 
 def homepage(request):
@@ -102,30 +105,24 @@ def cancel_booking(request, event_id):
     #redirect to my_booked events page
     return redirect('booked_events') 
 
-def communityform(request):
-    if request.method == 'POST':
-        details = CommunityForm(request.POST)
-        if details.is_valid():
-            post = details.save(commit=False)
-            post.requester = request.user  
-            post.save()
-            details.save_m2m() 
-            messages.success(request, "Your request has been submitted!")
-            return(redirect('community'))
-        else:
-            return render(request, "student_management/community_form.html", {'form': details})
-    else:
-        form = CommunityForm()
-        return render(request, "student_management/community_form.html", {'form': form})
 
-# from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.response import Response
-# from rest_framework.views import APIView
-# from rest_framework_simplejwt.authentication import JWTAuthentication
-# from rest_framework.authtoken.views import ObtainAuthToken
-# from rest_framework.response import Response
-# from rest_framework.authtoken.models import Token
+
+class CommunityRequestCreateView(LoginRequiredMixin, CreateView):
+    #use the model and form
+    model = CommunityRequest
+    form_class = CommunityForm
+    template_name = 'student_management/community_form.html'
+    #if sucessful redirect to the community page
+    success_url = reverse_lazy('community')  
+
+    def form_valid(self, form):
+        #get the user_id of the requester that is logged in 
+        form.instance.requester = self.request.user
+        #save the form
+        response = super().form_valid(form)
+        #display the message
+        messages.success(self.request, "Your request has been submitted!")
+        return response
 
 
 # # Example of a protected view using JWT authentication
