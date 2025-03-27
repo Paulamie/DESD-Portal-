@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import login, authenticate, logout
-from .forms import UserRegisterForm
+from .forms import UserRegisterForm,CommunityForm
 from django.contrib.auth.decorators import login_required
 from .models import Event,EventDetails,User
 from django.contrib import messages
@@ -53,6 +53,8 @@ def events(request):
 #     context_object_name = 'events'  
 #     template_name = 'student_management/event.html'  
 
+def community(request):
+    return render(request,'student_management/community.html')
 
 def booked_events(request):
     user = request.user  #get the current user 
@@ -100,6 +102,20 @@ def cancel_booking(request, event_id):
     #redirect to my_booked events page
     return redirect('booked_events') 
 
+def communityform(request):
+    if request.method == 'POST':
+        details = CommunityForm(request.POST)
+        if details.is_valid():
+            post = details.save(commit=False)
+            post.requester = request.user  # assuming the user is logged in
+            post.save()
+            return HttpResponse("Data submitted successfully.")
+        else:
+            return render(request, "student_management/community_form.html", {'form': details})
+    else:
+        form = CommunityForm()
+        return render(request, "student_management/community_form.html", {'form': form})
+    
 # from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response

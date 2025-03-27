@@ -121,6 +121,28 @@ class Interest(models.Model):
 
     def __str__(self):
         return self.interest_name
+
+class CommunityRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    requester = models.ForeignKey('User', on_delete=models.CASCADE, related_name='community_requests')
+    community_name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    purpose = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_community_requests')
+
+    class Meta:
+        db_table = "CommunityRequest"
+
+    def __str__(self):
+        return f"{self.community_name} request by User {self.requester_id}"
     
 # class Club(models.Model):
 # this is not needed it is the societies one 
