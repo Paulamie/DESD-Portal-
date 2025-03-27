@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import homepage, home, register, login_view, logout_view ,events,booked_events,booked,cancel_booking,communityform,community
+from .views import homepage, home, register, login_view, logout_view ,events,booked_events,booked,cancel_booking,community,communityform
 #profile
 
 

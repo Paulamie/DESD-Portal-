@@ -107,15 +107,17 @@ def communityform(request):
         details = CommunityForm(request.POST)
         if details.is_valid():
             post = details.save(commit=False)
-            post.requester = request.user  # assuming the user is logged in
+            post.requester = request.user  
             post.save()
-            return HttpResponse("Data submitted successfully.")
+            details.save_m2m() 
+            messages.success(request, "Your request has been submitted!")
+            return(redirect('community'))
         else:
             return render(request, "student_management/community_form.html", {'form': details})
     else:
         form = CommunityForm()
         return render(request, "student_management/community_form.html", {'form': form})
-    
+
 # from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response

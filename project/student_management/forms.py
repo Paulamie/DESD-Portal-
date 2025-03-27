@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
-from .models import User,CommunityRequest
+from .models import User
+from .models import CommunityRequest, Interest
+
 
 # from .models import UserProfile
 
@@ -15,9 +17,13 @@ class UserRegisterForm(UserCreationForm):
 
 class CommunityForm(forms.ModelForm):
     class Meta:
-        model = CommunityRequest     
-        fields = ["community_name", "description", "purpose"]
-        
+        model = CommunityRequest
+        # form fields
+        fields = ['community_name', 'description', 'purpose', 'interests']
+        widgets = {
+            # make the interest come up as a dropdown so user can choose
+            'interests': forms.SelectMultiple(),
+        }
 # class UserUpdateForm(forms.ModelForm):
 #     class Meta:
 #         model = User

@@ -116,33 +116,31 @@ class EventDetails(models.Model):
         return self.event_details_id
 
 class Interest(models.Model):
-    interest_id = models.AutoField(primary_key=True)  # Automatically incrementing primary key
-    interest_name = models.CharField(max_length=100)  # Field for storing interest name
-
-    def __str__(self):
-        return self.interest_name
-
-class CommunityRequest(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ]
-
-    requester = models.ForeignKey('User', on_delete=models.CASCADE, related_name='community_requests')
-    community_name = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    purpose = models.TextField(blank=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    reviewed_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_community_requests')
+    interest_id = models.AutoField(primary_key=True) 
+    interest_name = models.CharField(max_length=50, unique=True, null=True)
 
     class Meta:
-        db_table = "CommunityRequest"
+        db_table= "Interest"
+        
+    def __str__(self):
+        return self.interest_name
+    
+class CommunityRequest(models.Model):
+    community_name = models.CharField(max_length=255)
+    description = models.TextField()
+    purpose = models.TextField()
+    requester = models.ForeignKey(User, on_delete=models.CASCADE)
+    interests = models.ManyToManyField(Interest)
+    status = models.CharField(max_length=10, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(User, null=True, blank=True, related_name='reviewed_requests', on_delete=models.SET_NULL)
+    
+    class Meta:
+        db_table= "CommunityRequest"
 
     def __str__(self):
-        return f"{self.community_name} request by User {self.requester_id}"
+        return self.community_name
     
 # class Club(models.Model):
 # this is not needed it is the societies one 

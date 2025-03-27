@@ -13,12 +13,20 @@
     <div class="main-container">
 <h2>Request to Create a Community</h2>
 
-<form method="post">
+<form method="post" onsubmit="return showSuccessMessage()">
     {% csrf_token %}
     {{ form.as_p }}
+    
     <button type="submit" class= "submit">Submit Request</button>
 </form>
 </div>
 </div>
 </body>
 </html>
+
+<script>
+    function showSuccessMessage() {
+        alert("✅ Your community request has been submitted!");
+        return true; // continue with form submission
+    }
+    </script>
