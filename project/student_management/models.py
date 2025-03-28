@@ -55,8 +55,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
 class Community(models.Model):
+    is_approved = models.BooleanField(default=False)
     community_id = models.AutoField(primary_key=True)
     com_leader = models.CharField(max_length=255)
     community_name = models.CharField(max_length=100)
@@ -84,6 +88,7 @@ class Society(models.Model):
 
 
 class Event(models.Model):
+    is_approved = models.BooleanField(default=False)
     event_id = models.AutoField(primary_key=True) 
     event_name = models.CharField(max_length=100)
     start_time = models.DateTimeField()
@@ -141,7 +146,41 @@ class CommunityRequest(models.Model):
 
     def __str__(self):
         return self.community_name
-    
+
+from django.conf import settings
+from django.db import models
+
+class UpdateRequest(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='update_requests')
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_update_requests')
+    field_to_update = models.CharField(max_length=100)
+    old_value = models.CharField(max_length=100, blank=True, null=True)
+    new_value = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')])
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='update_requests/', null=True, blank=True)
+
+
+    def __str__(self):
+        return self.field_to_update
+
+
+class Post(models.Model):
+    post_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey('User', on_delete=models.CASCADE, to_field='user_id')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    likes = models.IntegerField(default=0)
+    comments_count = models.IntegerField(default=0)
+    content = models.TextField()
+    visibility = models.CharField(max_length=10, choices=[('private', 'Private'), ('public', 'Public')], default='public')
+
+    def __str__(self):
+        return f"Post by {self.user.email} - {self.content[:30]}"
+
+
+
+
 # class Club(models.Model):
 # this is not needed it is the societies one 
 #     name = models.CharField(max_length=100)

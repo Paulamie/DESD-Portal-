@@ -36,9 +36,38 @@
     </header>
 
     <div class="outer-container">
-    <div class="main-content"> 
-        <h1>Discover new communities</h1>
-        <li><a href ="{% url 'request-community' %}">Request new community</a></li>
-    </div>
+        <div class="main-content"> 
+            <h1>Discover new communities</h1>
+        
+            <!-- Search & Filter Form -->
+            <form method="get" action="{% url 'community' %}" style="margin-bottom: 20px;">
+                <input type="text" name="search" placeholder="Search communities..." value="{{ query }}" style="padding: 6px; width: 200px;">
+                <select name="filter" style="padding: 6px;">
+                    <option value="">All</option>
+                    <option value="my_requests" {% if filter_type == 'my_requests' %}selected{% endif %}>My Requests</option>
+                </select>
+                <button type="submit" style="padding: 6px 12px;">Search</button>
+            </form>
+
+            <h2>Communities</h2>
+            <div class="card-container">
+                {% for community in communities %}
+                    <div class="card">
+                        <h3>{{ community.community_name }}</h3>
+                        <p><strong>Leader:</strong> {{ community.com_leader }}</p>
+                        <p>{{ community.description }}</p>
+                    </div>
+                {% empty %}
+                    <p>No communities found.</p>
+                {% endfor %}
+            </div>
+
+        
+            <!-- Link to request new community -->
+            <li><a href="{% url 'request-community' %}">Request new community</a></li>
+        
+
+        </div>
+        
 </div>
 </html>

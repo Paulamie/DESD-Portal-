@@ -1,13 +1,12 @@
+<!-- profile.html -->
+
 {% extends 'student_management/base.html' %}
 
-{% block title %}Sign Up{% endblock %}
+{% block title %}User Profile{% endblock %}
 
 {% block content %}
-    <h2>Sign Up</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn">Register</button>
-    </form>
-    <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+    <h2>{{ user.first_name }} {{ user.last_name }}'s Profile</h2>
+    <p>Email: {{ user.email }}</p>
+    <p>Course: {{ user.profile.course }}</p>  <!-- Make sure profile exists and has course attribute -->
+    <a href="{% url 'request_update' %}">Request Profile Update</a>
 {% endblock %}

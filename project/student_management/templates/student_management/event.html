@@ -31,14 +31,27 @@
                     <li><a href="{% url 'login' %}"> Login</a></li>
                 {% endif %}
             </ul>
-            <div class="search-container">
+            <!-- <div class="search-container">
                 <img src="{% static 'images/search2.png' %}" alt="Search icon" class="search-icon">
-            </div>
+            </div> -->
         </nav>
     </header>
 
     <div class="outer-container">
     <div class="main-content"> 
+        <form method="get" action="{% url 'events' %}" style="margin-bottom: 20px; display: flex; gap: 10px;">
+            <input type="text" name="search" placeholder="Search events..." value="{{ request.GET.search }}" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; flex: 1;">
+            
+            <select name="filter" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                <option value="">All Locations</option>
+                <option value="online" {% if request.GET.filter == "online" %}selected{% endif %}>Online</option>
+                <option value="on-campus" {% if request.GET.filter == "on-campus" %}selected{% endif %}>On-Campus</option>
+            </select>
+        
+            <button type="submit" style="padding: 8px 12px; border-radius: 4px; background-color: #0288d1; color: white; border: none;">Search</button>
+        </form>
+        
+        
         <h1>Upcoming Events</h1>
         <a href="{% url 'booked_events'%}"><button class='booked'>My Booked Events</button></a>
         <div class="card-container">

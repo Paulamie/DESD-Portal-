@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Post Search</title>
+    <link rel="stylesheet" href="{% static 'css/posts.css' %}">
+</head>
+<body>
+    <h2>Search Public Posts</h2>
+    <form method="get" action="{% url 'search_posts' %}">
+        <input type="text" name="search" placeholder="Search posts..." value="{{ search_query }}">
+        <button type="submit">Search</button>
+    </form>
+
+    <div class="results">
+        {% for post in posts %}
+            <div class="post-card">
+                <strong>{{ post.user.first_name }} {{ post.user.last_name }}</strong>
+                <p>{{ post.content }}</p>
+                <small>{{ post.timestamp|date:"j F Y, H:i" }}</small>
+            </div>
+        {% empty %}
+            <p>No posts found matching your query.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

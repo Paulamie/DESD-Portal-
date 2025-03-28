@@ -18,18 +18,35 @@ class UserRegisterForm(UserCreationForm):
 class CommunityForm(forms.ModelForm):
     class Meta:
         model = CommunityRequest
-        # form fields
         fields = ['community_name', 'description', 'purpose', 'interests']
         widgets = {
-            # make the interest come up as a dropdown so user can choose
-            'interests': forms.SelectMultiple(),
+            'interests': forms.SelectMultiple(attrs={
+                'style': 'width:100%; height:120px; padding:8px;',
+                'class': 'form-control',
+            }),
         }
-# class UserUpdateForm(forms.ModelForm):
-#     class Meta:
-#         model = User
-#         fields = ['first_name', 'last_name', 'email']
-    
-# class ProfileUpdateForm(forms.ModelForm):
-#     class Meta:
-#         model = UserProfile
-#         fields = ['course', 'bio', 'profile_picture']
+
+from .models import UpdateRequest  # Add this import at the top of your forms.py
+
+
+from django import forms
+from .models import UpdateRequest
+
+from django import forms
+from .models import UpdateRequest
+
+class UpdateRequestForm(forms.ModelForm):
+    FIELD_CHOICES = [
+        ('name', 'Name'),
+        ('course', 'Course'),
+        ('profile_picture', 'Profile Picture'),
+    ]
+
+    field_to_update = forms.ChoiceField(choices=FIELD_CHOICES)
+    old_value = forms.CharField(required=False)
+    new_value = forms.CharField(required=False)
+    profile_picture = forms.ImageField(required=False)
+
+    class Meta:
+        model = UpdateRequest
+        fields = ['field_to_update', 'old_value', 'new_value', 'profile_picture']

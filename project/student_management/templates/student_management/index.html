@@ -1,11 +1,95 @@
-{% extends 'student_management/base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Uni Hub</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <style>
+        body {
+            background-color: #DFF5FF;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
 
-{% block title %}Welcome to Uni Hub{% endblock %}
+        .main-box {
+            max-width: 600px;
+            margin: 100px auto;
+            background-color: #B3E5FC;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
 
-{% block content %}
-    <h2>Welcome to Uni Hub</h2>
-    <p>Please log in or sign up to continue.</p>
+        .main-box h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .main-box p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .btn:hover {
+            background-color: darkred;
+        }
+
+        .navbar {
+            background-color: #D90429;
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .uwe-logo {
+            height: 60px; /* clean height */
+            width: auto; /* maintain aspect ratio */
+            display: block;
+        }
+
+
+
+        .navbar-links a {
+            color: white;
+            margin-left: 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="UWE Logo">
+        <div class="navbar-links">
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'register' %}">Sign Up</a>
+        </div>
+    </nav>
     
-    <a href="{% url 'login' %}" class="btn">Login</a>
-    <a href="{% url 'register' %}" class="btn">Sign Up</a>
-{% endblock %}
+
+    <div class="main-box">
+        <h1>Welcome to Uni Hub</h1>
+        <p>Discover events, join communities, and connect with others.</p>
+        <a href="{% url 'login' %}" class="btn">Login</a>
+        <a href="{% url 'register' %}" class="btn">Sign Up</a>
+    </div>
+
+</body>
+</html>
