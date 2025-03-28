@@ -66,7 +66,7 @@
     <ul class="nav-links">
         <li><a href="{% url 'events' %}">Events</a></li>
         <li><a href="#">Societies</a></li>
-        <li><a href="#">Communities</a></li>
+        <li><a href="{% url 'community' %}">Communities</a></li>
         <li><a href="#">Friends</a></li>
 
         {% if user.is_authenticated %}
@@ -89,7 +89,10 @@
             <div class="profile">
                 <img src="{% static 'images/profile_placeholder.png' %}" alt="Profile Image">
                 <p><strong>{{ user.first_name }} {{ user.last_name }}</strong><br>{{ user.profile.course }}</p>
-                <a href="#">Edit Profile</a>
+                <a href="{% url 'profile' %}">Request Profile Update</a>
+
+
+
             </div>
             <br>
             <div class="make-post">
