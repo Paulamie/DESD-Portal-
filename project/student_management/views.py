@@ -405,3 +405,7 @@ def post_search(request):
         'posts': posts,
         'search_query': query,
     })
+
+def societies(request):
+    societies = Community.objects.filter(is_approved=True)  
+    return render(request, 'student_management/societies.html', {'societies': societies})

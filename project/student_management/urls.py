@@ -37,6 +37,7 @@ urlpatterns = [
     path('update-request/', views.UpdateRequestCreateView.as_view(), name='update_request'),
     path('profile/', profile, name='profile'),
     path('search-posts/', post_search, name='search_posts'),
+    path('societies/', views.societies, name='societies'),
 
 
 
