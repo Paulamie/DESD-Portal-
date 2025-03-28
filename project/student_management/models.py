@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.utils import timezone
+
 
 
 # Custom User Manager
@@ -71,6 +73,16 @@ class Community(models.Model):
 
     def __str__(self):
         return self.community_name
+    
+class Interest(models.Model):
+    interest_id = models.AutoField(primary_key=True)
+    interest_name = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = "Interest"
+
+    def __str__(self):
+        return self.interest_name
 
 
 class Society(models.Model):
@@ -79,6 +91,11 @@ class Society(models.Model):
     society_name = models.CharField(max_length=100)
     society_location = models.CharField(max_length=255)
     description = models.TextField()
+    event_info = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now) 
+    interests = models.ManyToManyField('Interest', related_name='societies')
+
+
 
     class Meta:
         db_table = "Societies"
@@ -120,15 +137,6 @@ class EventDetails(models.Model):
     def __str__(self):
         return self.event_details_id
 
-class Interest(models.Model):
-    interest_id = models.AutoField(primary_key=True) 
-    interest_name = models.CharField(max_length=50, unique=True, null=True)
-
-    class Meta:
-        db_table= "Interest"
-        
-    def __str__(self):
-        return self.interest_name
     
 class CommunityRequest(models.Model):
     community_name = models.CharField(max_length=255)
