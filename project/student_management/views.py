@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Forms & Models
 from .forms import UserRegisterForm, CommunityForm
-from .models import Event, EventDetails, User, CommunityRequest
+from .models import Event, EventDetails, User, CommunityRequest, Post
 
 # REST Framework
 from rest_framework.decorators import action
@@ -58,7 +58,16 @@ def homepage(request):
 
 @login_required
 def home(request):
-    return render(request, 'student_management/home.html')
+    if request.method == 'POST':
+        content = request.POST.get('post_content')
+        if content:
+            Post.objects.create(user=request.user, content=content)
+            return redirect('homepage')
+
+    posts = Post.objects.select_related('user').order_by('-timestamp')
+    context = {'posts': posts}
+    
+    return render(request, 'student_management/home.html', context)
 
 def register(request):
     if request.method == 'POST':

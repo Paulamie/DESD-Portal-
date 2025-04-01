@@ -24,7 +24,7 @@ router.register(r'search-posts', PostSearchViewSet, basename='search-posts')
 
 urlpatterns = [
     path('', homepage, name='homepage'),
-    path('home/', home, name='home'),
+    path('home/', views.home, name='home'),
     path('register/', register, name='register'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
