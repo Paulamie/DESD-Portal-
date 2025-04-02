@@ -418,3 +418,13 @@ def post_search(request):
 def societies(request):
     societies = Community.objects.filter(is_approved=True)  
     return render(request, 'student_management/societies.html', {'societies': societies})
+
+from rest_framework.views import APIView
+
+class ProtectedEventsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        events = Event.objects.all()
+        serializer = EventSerializer(events, many=True)
+        return Response(serializer.data)

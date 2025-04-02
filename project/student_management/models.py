@@ -61,6 +61,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
     
+    @property
+    def id(self):
+        return self.user_id
+    
 class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
@@ -193,6 +197,9 @@ class Post(models.Model):
 
     def __str__(self):
         return f"Post by {self.user.email} - {self.content[:30]}"
+    
+
+
 
 
 
