@@ -46,7 +46,9 @@ from django.utils import timezone
 from django.db.models import Q
 
 
-
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from django.conf import settings
 
 
 
@@ -68,6 +70,18 @@ def home(request):
     context = {'posts': posts}
     
     return render(request, 'student_management/home.html', context)
+
+
+
+def send_test_email(request):
+    send_mail(
+        subject='Test Email from Django',
+        message='Hey! This is a test email to confirm your Django email is working.',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=['ilwadabdi234@gmail.com'],  
+        fail_silently=False,
+    )
+    return HttpResponse(" Test email function works!!!!!")
 
 def register(request):
     if request.method == 'POST':
@@ -100,7 +114,8 @@ def events(request):
     query = request.GET.get('search', '')
     filter_option = request.GET.get('filter', '')
 
-    events = Event.objects.all()
+    # only display events that are not in the past of the current time and date
+    events = Event.objects.filter(start_time__gte=timezone.now())
 
     if query:
         events = events.filter(
@@ -130,25 +145,39 @@ from django.db.models import Q
 
 from django.db.models import Q
 
+from itertools import chain
+
 def community(request):
     search_query = request.GET.get('search', '')
     filter_option = request.GET.get('filter', '')
 
+    # Get approved communities and requests
     communities = Community.objects.filter(is_approved=True)
+    community_requests = CommunityRequest.objects.filter(status='Approved')
+    community_requests_all= CommunityRequest.objects.all()
 
+    # Apply search filter to both
     if search_query:
         communities = communities.filter(
             Q(community_name__icontains=search_query) |
             Q(description__icontains=search_query)
         )
+        community_requests = community_requests.filter(
+            Q(community_name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
 
+    # Apply filter to just the current user's requests (if applicable)
     if filter_option == 'my_requests':
-        communities = communities.filter(com_leader=f"{request.user.first_name} {request.user.last_name}")
+        # Filter community requests by the logged-in user
+        communities = communities.filter(com_leader=request.user)
+        community_requests = community_requests_all.filter(requester_id=request.user)
+    # Combine the two querysets into one list
+    combined = list(chain(communities, community_requests))
 
     return render(request, 'student_management/community.html', {
-        'communities': communities
+        'communities': combined
     })
-
 
 
 

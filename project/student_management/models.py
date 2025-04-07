@@ -154,7 +154,7 @@ class CommunityRequest(models.Model):
     community_name = models.CharField(max_length=255)
     description = models.TextField()
     purpose = models.TextField()
-    requester = models.ForeignKey(User, on_delete=models.CASCADE)
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id')
     interests = models.ManyToManyField(Interest)
     status = models.CharField(max_length=10, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)

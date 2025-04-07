@@ -8,7 +8,7 @@ from .views import (
     PostSearchViewSet, EventAdminViewSet,
     UpdateRequestViewSet, CommunityAdminViewSet,
     EventSearchViewSet, CommunitySearchViewSet,
-    admin_community_requests, approve_community_request, reject_community_request
+    admin_community_requests, approve_community_request, reject_community_request,send_test_email
 )
 from rest_framework.routers import DefaultRouter
 from .views import post_search
@@ -44,6 +44,7 @@ urlpatterns = [
     path('profile/', profile, name='profile'),
     path('search-posts/', post_search, name='search_posts'),
     path('societies/', views.societies, name='societies'),
+    path('test-email/', views.send_test_email, name='test-email'), 
 
 
 
