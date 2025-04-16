@@ -13,10 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(sn$)6qjm%@basoy0ffsg0v#ne_lpuoyk67n1jp^u5sw6$v*&+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['paulamie.pythonanywhere.com']
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles/')
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
