@@ -8,10 +8,16 @@ from .views import (
     PostSearchViewSet, EventAdminViewSet,
     UpdateRequestViewSet, CommunityAdminViewSet,
     EventSearchViewSet, CommunitySearchViewSet,
-    admin_community_requests, approve_community_request, reject_community_request
+    admin_community_requests, approve_community_request, reject_community_request,send_test_email
 )
 from rest_framework.routers import DefaultRouter
 from .views import post_search
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+from .views import ProtectedEventsView
+
 
 # REST Framework ViewSets
 router = DefaultRouter()
@@ -38,6 +44,7 @@ urlpatterns = [
     path('profile/', profile, name='profile'),
     path('search-posts/', post_search, name='search_posts'),
     path('societies/', views.societies, name='societies'),
+    path('test-email/', views.send_test_email, name='test-email'), 
 
 
 
@@ -49,4 +56,9 @@ urlpatterns = [
 
     # REST API paths
     path('api/', include(router.urls)),
+
+    
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/protected-events/', ProtectedEventsView.as_view(), name='protected_events'),
 ]

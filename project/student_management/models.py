@@ -61,6 +61,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
     
+    @property
+    def id(self):
+        return self.user_id
+    
 class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
@@ -150,7 +154,7 @@ class CommunityRequest(models.Model):
     community_name = models.CharField(max_length=255)
     description = models.TextField()
     purpose = models.TextField()
-    requester = models.ForeignKey(User, on_delete=models.CASCADE)
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id')
     interests = models.ManyToManyField(Interest)
     status = models.CharField(max_length=10, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -193,6 +197,9 @@ class Post(models.Model):
 
     def __str__(self):
         return f"Post by {self.user.email} - {self.content[:30]}"
+    
+
+
 
 
 
