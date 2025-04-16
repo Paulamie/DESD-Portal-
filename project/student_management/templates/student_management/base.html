@@ -60,7 +60,9 @@
 
 <nav class="navbar">
     <a href="{% url 'homepage' %}">
+        {% load static %}
         <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="UWE Logo" class="uwe-logo">
+
     </a>
     <div class="navbar-links">
         <a href="{% url 'login' %}">Login</a>
