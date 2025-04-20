@@ -1,10 +1,9 @@
-
 services:
   web:
     build: .
     container_name: django_app
     command: >
-      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "/app/wait-for-it.sh db python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
@@ -21,6 +20,4 @@ services:
       - "3302:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-    
-
-
+      MYSQL_DATABASE: DESD1
