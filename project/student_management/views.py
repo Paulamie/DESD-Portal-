@@ -20,27 +20,18 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 # ViewSets
 from .serializers import UpdateRequestSerializer, CommunitySerializer, EventSerializer
-
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
-
 from django.views.generic.edit import CreateView
-
 from .models import UpdateRequest
-
-
 from .models import Community
-
 from .models import Event, EventDetails, User, CommunityRequest, UpdateRequest, Community, Post
-
 from .serializers import PostSerializer 
-
 from django.utils import timezone
 from django.views import View
 from django.shortcuts import render, redirect
 from .models import UpdateRequest
 from .forms import UpdateRequestForm
-
 from django.views import View
 from django.utils import timezone
 from django.db.models import Q
@@ -49,9 +40,7 @@ from django.db.models import Q
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.conf import settings
-
-
-
+import json
 
 def homepage(request):
     if request.user.is_authenticated:
@@ -70,8 +59,6 @@ def home(request):
     context = {'posts': posts}
     
     return render(request, 'student_management/home.html', context)
-
-
 
 def send_test_email(request):
     send_mail(
@@ -131,20 +118,9 @@ def events(request):
 
     return render(request, 'student_management/event.html', {'events': events})
 
-
-# class EventListView(ListView):
-#     model = Event
-#     context_object_name = 'events'  
-#     template_name = 'student_management/event.html'  
-
-
-
 from django.db.models import Q
-
 from django.db.models import Q
-
 from django.db.models import Q
-
 from itertools import chain
 
 def community(request):
@@ -179,9 +155,6 @@ def community(request):
         'communities': combined
     })
 
-
-
-
 def booked_events(request):
     user = request.user  #get the current user 
     #filters the event details based on user_id logged in 
@@ -207,7 +180,6 @@ def booked(request, event_id):
     # redirect to the my booked events page
     return redirect('booked_events')  
 
-
 def cancel_booking(request, event_id):
     #get the event and user models event_id and their user_id 
     event = get_object_or_404(Event, event_id=event_id)
@@ -227,8 +199,6 @@ def cancel_booking(request, event_id):
 
     #redirect to my_booked events page
     return redirect('booked_events') 
-
-
 
 class CommunityRequestCreateView(LoginRequiredMixin, CreateView):
     #use the model and form
@@ -315,10 +285,9 @@ class PostSearchViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Post.objects.filter(visibility='public')
     serializer_class = PostSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['content']
+    search_fields = ['content', 'user__first_name', 'user__last_name', 'timestamp']
 
 from .models import CommunityRequest
-
 from django.contrib.admin.views.decorators import staff_member_required  # only admin users
 from django.shortcuts import render, redirect
 
@@ -340,8 +309,6 @@ def reject_community_request(request, request_id):
     req.status = 'rejected'
     req.save()
     return redirect('admin_community_requests')
-
-
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
@@ -422,27 +389,10 @@ class UpdateRequestCreateView(View):
 
         return render(request, 'student_management/update_request.html', {'form': form})
 
-
-
-
-
 @login_required
 def profile(request):
     # Assuming you want to show user's details
     return render(request, 'student_management/profile.html', {'user': request.user})
-
-@login_required
-def post_search(request):
-    query = request.GET.get('search', '')
-    posts = Post.objects.filter(
-        Q(content__icontains=query),
-        visibility='public'
-    ) if query else Post.objects.filter(visibility='public')
-
-    return render(request, 'student_management/post_search.html', {
-        'posts': posts,
-        'search_query': query,
-    })
 
 def societies(request):
     societies = Community.objects.filter(is_approved=True)  
@@ -457,3 +407,62 @@ class ProtectedEventsView(APIView):
         events = Event.objects.all()
         serializer = EventSerializer(events, many=True)
         return Response(serializer.data)
+    
+from django.utils.timezone import make_aware
+from datetime import datetime
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from student_management.models import Post
+
+@login_required
+def search_posts(request):
+    query = request.GET.get('search', '').strip()
+    sort = request.GET.get('sort')
+    
+    # Start with public posts
+    posts = Post.objects.filter(visibility='public').select_related('user')
+
+    if query:
+        parsed_date = None
+        today_year = datetime.now().year
+
+        date_formats = [
+            "%d/%m", "%d-%m", "%d/%m/%Y", "%Y-%m-%d",
+            "%d %b %Y", "%d %B %Y"
+        ]
+
+        for fmt in date_formats:
+            try:
+                parsed_date = datetime.strptime(query, fmt)
+                if "%Y" not in fmt:
+                    parsed_date = parsed_date.replace(year=today_year)
+                parsed_date = make_aware(parsed_date)
+                break
+            except ValueError:
+                continue
+
+        if parsed_date:
+            posts = posts.filter(timestamp__date=parsed_date.date())
+        else:
+            posts = posts.filter(
+                Q(content__icontains=query) |
+                Q(user__first_name__icontains=query) |
+                Q(user__last_name__icontains=query) |
+                Q(user__email__icontains=query) |
+                Q(timestamp__icontains=query) |
+                Q(likes__icontains=query) |
+                Q(comments_count__icontains=query)
+            )
+
+    # ✅ Apply sorting *after* filtering
+    if sort == 'oldest':
+        posts = posts.order_by('timestamp')
+    else:
+        posts = posts.order_by('-timestamp')
+
+    return render(request, 'student_management/search_posts.html', {
+        'posts': posts,
+        'query': query,
+        'sort': sort
+    })

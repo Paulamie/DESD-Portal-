@@ -1,24 +1,32 @@
 FROM python:3.12-slim
 
-# Install system dependencies including netcat (for wait-for-it)
-RUN apt-get update \
-    && apt-get install -y build-essential libssl-dev libffi-dev python3-dev default-libmysqlclient-dev netcat-openbsd \
-    && apt-get clean
+# Install system dependencies for MySQL and Python packages
+RUN apt-get update && apt-get install -y \
+    gcc \
+    default-libmysqlclient-dev \
+    libssl-dev \
+    libffi-dev \
+    netcat-openbsd \
+    mariadb-client \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
+# Set working directory
 WORKDIR /app
 
-# Copy the requirements file
+# Copy and install Python dependencies
 COPY requirements.txt /app/
-
-# Install the required python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy everything else (including wait-for-it.sh)
+# Copy all project files
 COPY . /app/
 
-# Make wait-for-it.sh executable
+# Make wait-for-it script executable
 RUN chmod +x /app/wait-for-it.sh
 
-# Expose the port
+# Expose port
 EXPOSE 8000
+
+# Wait for DB and start Django
+CMD ["sh", "-c", "/app/wait-for-it.sh db:3306 -- python manage.py runserver 0.0.0.0:8000"]

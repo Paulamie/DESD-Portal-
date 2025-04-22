@@ -17,17 +17,15 @@
         <ul class="nav-links">
             <li><a href="{% url 'events' %}">Events</a></li>
             <li><a href="{% url 'societies' %}">Societies</a></li>
-            <li><a href="#">Communities</a></li>
+            <li><a href="{% url 'community' %}">Communities</a></li>
             <li><a href="#">Friends</a></li>
+            <li><a href="{% url 'search_posts' %}">Posts</a></li>
             {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}">Logout</a></li>
             {% else %}
                 <li><a href="{% url 'login' %}">Login</a></li>
             {% endif %}
         </ul>
-        <div class="search-container">
-            <img src="{% static 'images/search2.png' %}" alt="Search icon" class="search-icon">
-        </div>
     </nav>
 </header>
 
