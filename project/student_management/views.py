@@ -20,27 +20,18 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 # ViewSets
 from .serializers import UpdateRequestSerializer, CommunitySerializer, EventSerializer
-
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
-
 from django.views.generic.edit import CreateView
-
 from .models import UpdateRequest
-
-
 from .models import Community
-
 from .models import Event, EventDetails, User, CommunityRequest, UpdateRequest, Community, Post
-
 from .serializers import PostSerializer 
-
 from django.utils import timezone
 from django.views import View
 from django.shortcuts import render, redirect
 from .models import UpdateRequest
 from .forms import UpdateRequestForm
-
 from django.views import View
 from django.utils import timezone
 from django.db.models import Q
@@ -49,14 +40,14 @@ from django.db.models import Q
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.conf import settings
-
-
-
+import json
 
 def homepage(request):
     if request.user.is_authenticated:
         return redirect('home')  # Redirect logged-in users to home
     return render(request, 'student_management/index.html')
+
+from .models import CommunityMembership
 
 @login_required
 def home(request):
@@ -64,13 +55,16 @@ def home(request):
         content = request.POST.get('post_content')
         if content:
             Post.objects.create(user=request.user, content=content)
-            return redirect('homepage')
+            return redirect('home')
 
     posts = Post.objects.select_related('user').order_by('-timestamp')
-    context = {'posts': posts}
-    
-    return render(request, 'student_management/home.html', context)
+    joined_communities = CommunityMembership.objects.filter(user=request.user).select_related('community')
 
+    context = {
+        'posts': posts,
+        'joined_communities': [jc.community for jc in joined_communities]
+    }
+    return render(request, 'student_management/home.html', context)
 
 
 def send_test_email(request):
@@ -131,21 +125,14 @@ def events(request):
 
     return render(request, 'student_management/event.html', {'events': events})
 
-
-# class EventListView(ListView):
-#     model = Event
-#     context_object_name = 'events'  
-#     template_name = 'student_management/event.html'  
-
-
-
 from django.db.models import Q
-
 from django.db.models import Q
-
 from django.db.models import Q
-
 from itertools import chain
+
+from .models import CommunityMembership  # already imported, just for clarity
+from itertools import chain
+from django.db.models import Q
 
 def community(request):
     search_query = request.GET.get('search', '')
@@ -154,9 +141,9 @@ def community(request):
     # Get approved communities and requests
     communities = Community.objects.filter(is_approved=True)
     community_requests = CommunityRequest.objects.filter(status='Approved')
-    community_requests_all= CommunityRequest.objects.all()
+    community_requests_all = CommunityRequest.objects.all()
 
-    # Apply search filter to both
+    # Apply search filter
     if search_query:
         communities = communities.filter(
             Q(community_name__icontains=search_query) |
@@ -167,19 +154,49 @@ def community(request):
             Q(description__icontains=search_query)
         )
 
-    # Apply filter to just the current user's requests (if applicable)
-    if filter_option == 'my_requests':
-        # Filter community requests by the logged-in user
+    # Filter by logged-in user's own requests
+    if filter_option == 'my_requests' and request.user.is_authenticated:
         communities = communities.filter(com_leader=request.user)
-        community_requests = community_requests_all.filter(requester_id=request.user)
-    # Combine the two querysets into one list
-    combined = list(chain(communities, community_requests))
+        community_requests = community_requests_all.filter(requester=request.user)
+
+    # Combine all visible community objects (Community + CommunityRequest)
+    combined = communities  # Only show actual approved Community models
+
+
+    # ✅ Add this logic to check which communities the user has already joined
+    joined_ids = set()
+    if request.user.is_authenticated:
+        joined_ids = set(
+            CommunityMembership.objects.filter(user=request.user)
+            .values_list('community__community_id', flat=True)
+        )
+
 
     return render(request, 'student_management/community.html', {
-        'communities': combined
+        'communities': communities,
+        'joined_ids': joined_ids,
+        'query': search_query,
+        'filter_option': filter_option,
     })
 
 
+
+from .models import CommunityMembership
+
+@login_required
+def join_community(request, community_id):
+    community = get_object_or_404(Community, community_id=community_id, is_approved=True)
+
+    # Check if already joined
+    already_member = CommunityMembership.objects.filter(user=request.user, community=community).exists()
+
+    if not already_member:
+        CommunityMembership.objects.create(user=request.user, community=community)
+        messages.success(request, f"You joined {community.community_name} 🎉")
+    else:
+        messages.info(request, f"You're already a member of {community.community_name}")
+
+    return redirect('community')
 
 
 def booked_events(request):
@@ -207,7 +224,6 @@ def booked(request, event_id):
     # redirect to the my booked events page
     return redirect('booked_events')  
 
-
 def cancel_booking(request, event_id):
     #get the event and user models event_id and their user_id 
     event = get_object_or_404(Event, event_id=event_id)
@@ -227,8 +243,6 @@ def cancel_booking(request, event_id):
 
     #redirect to my_booked events page
     return redirect('booked_events') 
-
-
 
 class CommunityRequestCreateView(LoginRequiredMixin, CreateView):
     #use the model and form
@@ -315,10 +329,9 @@ class PostSearchViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Post.objects.filter(visibility='public')
     serializer_class = PostSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['content']
+    search_fields = ['content', 'user__first_name', 'user__last_name', 'timestamp']
 
 from .models import CommunityRequest
-
 from django.contrib.admin.views.decorators import staff_member_required  # only admin users
 from django.shortcuts import render, redirect
 
@@ -340,8 +353,6 @@ def reject_community_request(request, request_id):
     req.status = 'rejected'
     req.save()
     return redirect('admin_community_requests')
-
-
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
@@ -386,7 +397,7 @@ class UpdateRequestCreateView(CreateView):
     model = UpdateRequest
     form_class = UpdateRequestForm
     template_name = 'student_management/update_request.html'
-    success_url = '/profile'  # or redirect to any page after submission
+    success_url = '/home' 
 
     def form_valid(self, form):
         # Ensure the user submitting the form is logged in
@@ -403,46 +414,35 @@ class UpdateRequestCreateView(View):
         form = UpdateRequestForm(request.POST, request.FILES)
         if form.is_valid():
             field = form.cleaned_data['field_to_update']
-            old = form.cleaned_data['old_value']
-            new = form.cleaned_data['new_value']
-            pic = request.FILES.get('profile_picture')
+            new_value = form.cleaned_data['new_value']
+            profile_picture = request.FILES.get('profile_picture')
+
+            # Auto-detect old value
+            if field == 'name':
+                old = request.user.get_full_name()
+            elif field == 'course':
+                old = request.user.course
+            else:
+                old = ''  
 
             update_request = UpdateRequest.objects.create(
                 user=request.user,
-                field_to_update=field,
+                field_to_update=field.capitalize(),
                 old_value=old,
-                new_value=new if field != 'Profile Picture' else (pic.name if pic else ''),
+                new_value=new_value if field != 'profile_picture' else '',
+                profile_picture=profile_picture if field == 'profile_picture' else None,
                 status='pending',
                 created_at=timezone.now()
             )
 
+            messages.success(request, "Your update request was submitted.")
             return redirect('home')
-
-        print("FORM ERRORS:", form.errors)
-
-        return render(request, 'student_management/update_request.html', {'form': form})
-
-
-
 
 
 @login_required
 def profile(request):
     # Assuming you want to show user's details
     return render(request, 'student_management/profile.html', {'user': request.user})
-
-@login_required
-def post_search(request):
-    query = request.GET.get('search', '')
-    posts = Post.objects.filter(
-        Q(content__icontains=query),
-        visibility='public'
-    ) if query else Post.objects.filter(visibility='public')
-
-    return render(request, 'student_management/post_search.html', {
-        'posts': posts,
-        'search_query': query,
-    })
 
 def societies(request):
     societies = Community.objects.filter(is_approved=True)  
@@ -457,3 +457,62 @@ class ProtectedEventsView(APIView):
         events = Event.objects.all()
         serializer = EventSerializer(events, many=True)
         return Response(serializer.data)
+    
+from django.utils.timezone import make_aware
+from datetime import datetime
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from student_management.models import Post
+
+@login_required
+def search_posts(request):
+    query = request.GET.get('search', '').strip()
+    sort = request.GET.get('sort')
+    
+    # Start with public posts
+    posts = Post.objects.filter(visibility='public').select_related('user')
+
+    if query:
+        parsed_date = None
+        today_year = datetime.now().year
+
+        date_formats = [
+            "%d/%m", "%d-%m", "%d/%m/%Y", "%Y-%m-%d",
+            "%d %b %Y", "%d %B %Y"
+        ]
+
+        for fmt in date_formats:
+            try:
+                parsed_date = datetime.strptime(query, fmt)
+                if "%Y" not in fmt:
+                    parsed_date = parsed_date.replace(year=today_year)
+                parsed_date = make_aware(parsed_date)
+                break
+            except ValueError:
+                continue
+
+        if parsed_date:
+            posts = posts.filter(timestamp__date=parsed_date.date())
+        else:
+            posts = posts.filter(
+                Q(content__icontains=query) |
+                Q(user__first_name__icontains=query) |
+                Q(user__last_name__icontains=query) |
+                Q(user__email__icontains=query) |
+                Q(timestamp__icontains=query) |
+                Q(likes__icontains=query) |
+                Q(comments_count__icontains=query)
+            )
+
+    # ✅ Apply sorting *after* filtering
+    if sort == 'oldest':
+        posts = posts.order_by('timestamp')
+    else:
+        posts = posts.order_by('-timestamp')
+
+    return render(request, 'student_management/search_posts.html', {
+        'posts': posts,
+        'query': query,
+        'sort': sort
+    })

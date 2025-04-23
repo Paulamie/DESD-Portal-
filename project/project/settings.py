@@ -13,8 +13,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(sn$)6qjm%@basoy0ffsg0v#ne_lpuoyk67n1jp^u5sw6$v*&+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'paulamie.pythonanywhere.com'] #DONT CHANGE THIS 
+DEBUG = True
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'paulamie.pythonanywhere.com']
+
+LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'login'  # Optional: after logout
+LOGIN_REDIRECT_URL = 'home'    # Optional: after login
+
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
@@ -52,7 +57,7 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],  # You can add custom templates dir like BASE_DIR / 'templates'
+        'DIRS': [],  
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -107,7 +112,7 @@ USE_TZ = True
 # Static and media
 STATIC_URL = 'static/'
 
-# STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

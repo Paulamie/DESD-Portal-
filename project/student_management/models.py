@@ -34,6 +34,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=255)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
+    full_name = models.CharField(max_length=255, blank=True)
+    course = models.CharField(max_length=255, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -64,14 +67,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def id(self):
         return self.user_id
-    
-class Post(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'{self.author.username}: {self.content[:30]}'
 
 class Community(models.Model):
     is_approved = models.BooleanField(default=False)
@@ -79,6 +74,7 @@ class Community(models.Model):
     com_leader = models.CharField(max_length=255)
     community_name = models.CharField(max_length=100)
     description = models.TextField()
+    purpose = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = "Community"
@@ -198,39 +194,13 @@ class Post(models.Model):
     def __str__(self):
         return f"Post by {self.user.email} - {self.content[:30]}"
     
+class CommunityMembership(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    community = models.ForeignKey(Community, on_delete=models.CASCADE)
+    joined_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('user', 'community')  # Prevent duplicate joins
 
-
-
-
-
-# class Club(models.Model):
-# this is not needed it is the societies one 
-#     name = models.CharField(max_length=100)
-#     description = models.TextField()
-
-#     def __str__(self):
-#         return self.name
-
-
-# class UserProfile(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     course = models.CharField(max_length=100, blank=True, null=True)
-#     bio = models.TextField(blank=True, null=True)
-#     profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
-#     interests = models.ManyToManyField(Interest, blank=True) 
-#     clubs = models.ManyToManyField(Club, blank=True) refer to the socieites model 
-#     communities = models.ForeignKey(Community, on_delete=models.SET_NULL, null=True, blank=True)
-
-#     def __str__(self):
-#         return self.user.email
-
-
-# class Friendship(models.Model):
-#     id = models.AutoField(primary_key=True)
-#     # user one foreign key and referenced it 
-#     user = models.ForeignKey(User, on_delete=models.CASCADE,  to_field='user_id')
-#     friends = models.ManyToManyField(use the model, related_name="friend_of")
-
-#     def __str__(self):
-#         return f"{self.user.email}'s friends"
+    def __str__(self):
+        return f"{self.user.get_full_name()} -> {self.community.community_name}"

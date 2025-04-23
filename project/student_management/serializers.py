@@ -18,9 +18,18 @@ class UpdateRequestSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+from rest_framework import serializers
+from .models import Post
+
 class PostSerializer(serializers.ModelSerializer):
+    user_full_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Post
-        fields = '__all__'
+        fields = ['post_id', 'content', 'timestamp', 'user_full_name', 'visibility']
+
+    def get_user_full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
 
 

@@ -7,15 +7,16 @@
     {% if error %}
         <p style="color:red">{{ error }}</p>
     {% endif %}
-    <form method="POST">
+    <form method="POST" class="login-form">
         {% csrf_token %}
         <label>Email:</label>
         <input type="email" name="email" required>
-        <br><br>
+    
         <label>Password:</label>
         <input type="password" name="password" required>
-        <br><br>
+    
         <button type="submit" class="btn">Login</button>
     </form>
+    
     <p>Don't have an account? <a href="{% url 'register' %}">Sign up here</a></p>
 {% endblock %}

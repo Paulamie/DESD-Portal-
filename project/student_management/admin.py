@@ -1,17 +1,35 @@
 from django.contrib import admin
-from .models import CommunityRequest, Event, Community, Society, Interest  
-from django.contrib import admin
-from .models import UpdateRequest
 from django.db import models
 from django.utils import timezone
+from django.contrib import messages
+from .models import CommunityRequest, Event, Community, Society, Interest, UpdateRequest, CommunityMembership
 
 
-# Custom actions for the admin interface
+
 def approve_community_request(modeladmin, request, queryset):
-    queryset.update(status='approved')
+    for req in queryset:
+        req.status = 'approved'
+        req.reviewed_at = timezone.now()
+        req.reviewed_by = request.user
+        req.save()
+
+        # Only create if a Community doesn't already exist
+        if not Community.objects.filter(community_name=req.community_name).exists():
+            Community.objects.create(
+                community_name=req.community_name,
+                description=req.description,
+                purpose=req.purpose,
+                com_leader=req.requester.get_full_name(),
+                is_approved=True
+            )
+
+    modeladmin.message_user(request, "✅ Selected community requests were approved and communities created.", messages.SUCCESS)
+
 
 def reject_community_request(modeladmin, request, queryset):
-    queryset.update(status='rejected')
+    queryset.update(status='rejected', reviewed_at=timezone.now(), reviewed_by=request.user)
+    modeladmin.message_user(request, "❌ Selected community requests were rejected.", messages.ERROR)
+
 
 approve_community_request.short_description = "Approve selected requests"
 reject_community_request.short_description = "Reject selected requests"
@@ -50,19 +68,61 @@ class InterestAdmin(admin.ModelAdmin):
 
 
 def approve_update_request(modeladmin, request, queryset):
-    queryset.update(status='approved', reviewed_at=timezone.now(), reviewed_by=request.user)
+    from django.core.files.base import ContentFile
+    import os
+
+    for obj in queryset:
+        obj.status = 'approved'
+        obj.reviewed_at = timezone.now()
+        obj.reviewed_by = request.user
+
+        user = obj.user
+        field = obj.field_to_update.lower()
+
+        if field == 'name':
+            full_name = obj.new_value.strip().split(' ', 1)
+            user.first_name = full_name[0]
+            user.last_name = full_name[1] if len(full_name) > 1 else ''
+
+        elif field == 'course':
+            user.course = obj.new_value
+
+        elif field == 'profile picture' and obj.profile_picture:
+            filename = os.path.basename(obj.profile_picture.name)
+            try:
+                obj.profile_picture.open()
+                user.profile_picture.save(
+                    filename,
+                    ContentFile(obj.profile_picture.read()),
+                    save=True
+                )
+            except Exception as e:
+                print(f"❌ Error saving profile picture: {e}")
+
+        user.save()
+        obj.save()
+
+    modeladmin.message_user(request, "✅ Selected profile updates were approved.", messages.SUCCESS)
+
 
 def reject_update_request(modeladmin, request, queryset):
     queryset.update(status='rejected', reviewed_at=timezone.now(), reviewed_by=request.user)
-
+    modeladmin.message_user(request, "❌ Selected profile updates were rejected.", messages.ERROR)
 
 
 approve_update_request.short_description = "Approve selected update requests"
 reject_update_request.short_description = "Reject selected update requests"
 
+from django.core.files.base import ContentFile
+
 @admin.register(UpdateRequest)
 class UpdateRequestAdmin(admin.ModelAdmin):
-    list_display = ('user', 'field_to_update', 'old_value', 'new_value', 'status', 'created_at', 'reviewed_at')
-    list_filter = ('status', 'created_at')
+    list_display = ['user', 'field_to_update', 'old_value', 'new_value', 'status', 'created_at', 'reviewed_at']
+    list_filter = ['status', 'field_to_update']
     actions = [approve_update_request, reject_update_request]
 
+@admin.register(CommunityMembership)
+class CommunityMembershipAdmin(admin.ModelAdmin):
+    list_display = ('user', 'community', 'joined_at')
+    list_filter = ('community',)
+    search_fields = ('user__first_name', 'user__last_name', 'community__community_name')
