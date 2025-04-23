@@ -26,6 +26,11 @@ class CommunityForm(forms.ModelForm):
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['interests'].queryset = Interest.objects.all()
+
+
 from .models import UpdateRequest  # Add this import at the top of your forms.py
 
 

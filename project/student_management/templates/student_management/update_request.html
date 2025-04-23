@@ -89,39 +89,59 @@
                 
             </div>
 
-            <div id="text-fields">
-                <label for="old_value">Old value:</label>
-                <input type="text" name="old_value" id="old_value">
 
-                <label for="new_value">New value:</label>
+            <div id="new_value_wrapper">
+                <label for="new_value" id="new_value_label">New value:</label>
                 <input type="text" name="new_value" id="new_value">
             </div>
-
+            
             <div id="file-field" style="display: none;">
                 <label for="profile_picture">Upload new picture:</label>
                 <input type="file" name="profile_picture" id="profile_picture">
             </div>
+            
+            
 
             <button type="submit">Submit Request</button>
         </form>
     </div>
-
     <script>
+        const oldValueInput = document.getElementById('old_value');
+        document.getElementById('new_value_wrapper').style.display = "none";
+
+    
         function toggleFields() {
-            const field = document.getElementById('field_to_update').value;
-            const textFields = document.getElementById('text-fields');
-            const fileField = document.getElementById('file-field');
-        
-            if (field === "profile_picture") {
-                textFields.style.display = "none";
-                fileField.style.display = "block";
-            } else {
-                textFields.style.display = "block";
-                fileField.style.display = "none";
-            }
+        const field = document.getElementById('field_to_update').value;
+        const wrapper = document.getElementById('new_value_wrapper');
+        const fileField = document.getElementById('file-field');
+        const label = document.getElementById('new_value_label');
+
+        if (field === "profile_picture") {
+            wrapper.style.display = "none";
+            fileField.style.display = "block";
+        } else {
+            wrapper.style.display = "block";
+            fileField.style.display = "none";
+            label.innerText = field === "name" ? "New Name:" : "New Course:";
         }
-        window.onload = toggleFields;
-        </script>
+
+        // Inject user values as JS-safe strings
+        const userName = "{{ user.get_full_name|escapejs }}";
+        const userCourse = "{{ user.course|default:''|escapejs }}";
+
+        // Auto-fill old value
+        if (field === "name") {
+            document.getElementById('old_value').value = userName;
+        } else if (field === "course") {
+            document.getElementById('old_value').value = userCourse;
+        }
+
+    }
+
+    window.onload = toggleFields;
+
+    </script>
+    
         
 
 </body>

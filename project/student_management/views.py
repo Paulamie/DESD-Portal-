@@ -47,18 +47,25 @@ def homepage(request):
         return redirect('home')  # Redirect logged-in users to home
     return render(request, 'student_management/index.html')
 
+from .models import CommunityMembership
+
 @login_required
 def home(request):
     if request.method == 'POST':
         content = request.POST.get('post_content')
         if content:
             Post.objects.create(user=request.user, content=content)
-            return redirect('homepage')
+            return redirect('home')
 
     posts = Post.objects.select_related('user').order_by('-timestamp')
-    context = {'posts': posts}
-    
+    joined_communities = CommunityMembership.objects.filter(user=request.user).select_related('community')
+
+    context = {
+        'posts': posts,
+        'joined_communities': [jc.community for jc in joined_communities]
+    }
     return render(request, 'student_management/home.html', context)
+
 
 def send_test_email(request):
     send_mail(
@@ -123,6 +130,10 @@ from django.db.models import Q
 from django.db.models import Q
 from itertools import chain
 
+from .models import CommunityMembership  # already imported, just for clarity
+from itertools import chain
+from django.db.models import Q
+
 def community(request):
     search_query = request.GET.get('search', '')
     filter_option = request.GET.get('filter', '')
@@ -130,9 +141,9 @@ def community(request):
     # Get approved communities and requests
     communities = Community.objects.filter(is_approved=True)
     community_requests = CommunityRequest.objects.filter(status='Approved')
-    community_requests_all= CommunityRequest.objects.all()
+    community_requests_all = CommunityRequest.objects.all()
 
-    # Apply search filter to both
+    # Apply search filter
     if search_query:
         communities = communities.filter(
             Q(community_name__icontains=search_query) |
@@ -143,17 +154,50 @@ def community(request):
             Q(description__icontains=search_query)
         )
 
-    # Apply filter to just the current user's requests (if applicable)
-    if filter_option == 'my_requests':
-        # Filter community requests by the logged-in user
+    # Filter by logged-in user's own requests
+    if filter_option == 'my_requests' and request.user.is_authenticated:
         communities = communities.filter(com_leader=request.user)
-        community_requests = community_requests_all.filter(requester_id=request.user)
-    # Combine the two querysets into one list
-    combined = list(chain(communities, community_requests))
+        community_requests = community_requests_all.filter(requester=request.user)
+
+    # Combine all visible community objects (Community + CommunityRequest)
+    combined = communities  # Only show actual approved Community models
+
+
+    # ✅ Add this logic to check which communities the user has already joined
+    joined_ids = set()
+    if request.user.is_authenticated:
+        joined_ids = set(
+            CommunityMembership.objects.filter(user=request.user)
+            .values_list('community__community_id', flat=True)
+        )
+
 
     return render(request, 'student_management/community.html', {
-        'communities': combined
+        'communities': communities,
+        'joined_ids': joined_ids,
+        'query': search_query,
+        'filter_option': filter_option,
     })
+
+
+
+from .models import CommunityMembership
+
+@login_required
+def join_community(request, community_id):
+    community = get_object_or_404(Community, community_id=community_id, is_approved=True)
+
+    # Check if already joined
+    already_member = CommunityMembership.objects.filter(user=request.user, community=community).exists()
+
+    if not already_member:
+        CommunityMembership.objects.create(user=request.user, community=community)
+        messages.success(request, f"You joined {community.community_name} 🎉")
+    else:
+        messages.info(request, f"You're already a member of {community.community_name}")
+
+    return redirect('community')
+
 
 def booked_events(request):
     user = request.user  #get the current user 
@@ -353,7 +397,7 @@ class UpdateRequestCreateView(CreateView):
     model = UpdateRequest
     form_class = UpdateRequestForm
     template_name = 'student_management/update_request.html'
-    success_url = '/profile'  # or redirect to any page after submission
+    success_url = '/home' 
 
     def form_valid(self, form):
         # Ensure the user submitting the form is logged in
@@ -370,24 +414,30 @@ class UpdateRequestCreateView(View):
         form = UpdateRequestForm(request.POST, request.FILES)
         if form.is_valid():
             field = form.cleaned_data['field_to_update']
-            old = form.cleaned_data['old_value']
-            new = form.cleaned_data['new_value']
-            pic = request.FILES.get('profile_picture')
+            new_value = form.cleaned_data['new_value']
+            profile_picture = request.FILES.get('profile_picture')
+
+            # Auto-detect old value
+            if field == 'name':
+                old = request.user.get_full_name()
+            elif field == 'course':
+                old = request.user.course
+            else:
+                old = ''  
 
             update_request = UpdateRequest.objects.create(
                 user=request.user,
-                field_to_update=field,
+                field_to_update=field.capitalize(),
                 old_value=old,
-                new_value=new if field != 'Profile Picture' else (pic.name if pic else ''),
+                new_value=new_value if field != 'profile_picture' else '',
+                profile_picture=profile_picture if field == 'profile_picture' else None,
                 status='pending',
                 created_at=timezone.now()
             )
 
+            messages.success(request, "Your update request was submitted.")
             return redirect('home')
 
-        print("FORM ERRORS:", form.errors)
-
-        return render(request, 'student_management/update_request.html', {'form': form})
 
 @login_required
 def profile(request):

@@ -61,4 +61,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/protected-events/', ProtectedEventsView.as_view(), name='protected_events'),
     path('search-posts/', search_posts, name='search_posts'),
+
+    path('join-community/<int:community_id>/', views.join_community, name='join_community'),
+
 ]
