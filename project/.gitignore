@@ -6,8 +6,9 @@
 *.pyc
 __pycache__/
 
-# Ignore Django migration files
-student_management/migrations/*
+# Ignore migration cache, but keep actual migration files
+**/__pycache__/
+**/*.pyc
 
 # Ignore VS Code settings
 .vscode/
