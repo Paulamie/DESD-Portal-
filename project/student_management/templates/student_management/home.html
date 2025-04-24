@@ -1,0 +1,187 @@
+{% load static %}  
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Home</title>
+    <style>
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .profile, .make-post, .latest-posts, .friends-communities {
+            background-color: #B3E5FC;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .latest-posts {
+            background-color: #B3E5FC;
+        }
+
+        .post-example {
+            background-color: #4cd5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: #000;
+        }
+        
+        .post-user {
+            font-weight: normal; 
+            text-align: left;
+            margin-bottom: 8px;
+        }
+        
+        .post-content {
+            background-color: #e0e0e0; /* grey background */
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        
+        .post-date {
+            font-size: 12px;
+            text-align: right;
+            color: #333;
+        }
+
+        .friends-communities div {
+            background-color: #D3D3D3;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            color: #555;
+        }
+        textarea {
+            width: 95%;
+            resize: none;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-post {
+            background-color: red;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        .profile img {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<header>
+<nav class="navbar">
+    <a href="{% url 'home' %}" class="logo-link">
+        <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="Site Banner" width="100%">
+    </a>
+    <ul class="nav-links">
+        <li><a href="{% url 'events' %}">Events</a></li>
+        <li><a href="{% url 'societies' %}">Societies</a></li>
+        <li><a href="{% url 'community' %}">Communities</a></li>
+        <li><a href="#">Friends</a></li>
+        <li><a href="{% url 'search_posts' %}">Posts</a></li>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'logout' %}"> Logout</a></li>
+        {% else %}
+            <li><a href="{% url 'login' %}"> Login</a></li>
+        {% endif %}
+    </ul>
+    <div class="search-container">
+        <img src="{% static 'images/search2.png' %}" alt="Search icon" class="search-icon">
+    </div>
+</nav>
+</header>
+<body>
+    <h2>Welcome, {{ user.first_name }}!</h2>
+
+    <div class="main-container">
+        <!-- Left Column -->
+        <div class="left-column">
+            <div class="profile">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile Image" style="object-fit: cover;">
+                {% else %}
+                <img src="{% static 'images/profile_placeholder.png' %}" alt="Default Profile Image">
+                {% endif %}
+
+                <p><strong>{{ user.first_name }} {{ user.last_name }}</strong><br>{{ user.course }}</p>
+
+                <a href="{% url 'profile' %}">Request Profile Update</a>
+
+
+
+            </div>
+            <br>
+            <div class="make-post">
+                <h4>Make a post:</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <textarea name="post_content" placeholder="Start Typing..." required></textarea>
+                    <button class="btn-post" type="submit">Post</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Center Column -->
+        <div class="latest-posts">
+            <h3>Latest Posts</h3>
+            {% for post in posts %}
+                <div class="post-example">
+                    <div class="post-user">
+                        {{ post.user.first_name }} said:
+                    </div>
+                    <div class="post-content">
+                        {{ post.content }}
+                    </div>
+                    <div class="post-date">
+                        {{ post.timestamp|date:"M d, Y H:i" }}
+                    </div>
+                </div>
+            {% empty %}
+                <p>No posts available.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Right Column -->
+        <div class="friends-communities">
+            <div>
+                <strong>Your friends:</strong>
+                <p>Display</p>
+            </div>
+
+
+            <div>
+                <strong>Your Communities:</strong>
+                {% if joined_communities %}
+                    <ul style="list-style-type: none; padding: 0;">
+                        {% for community in joined_communities %}
+                            <li>{{ community.community_name }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>You haven't joined any communities yet.</p>
+                {% endif %}
+            </div>
+            
+            
+
+            <div>
+                <strong>Your Clubs:</strong>
+                <p>Display</p>
+            </div>
+        </div>
+    </div>
+    <br>
+</body>
+</html>

@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Uni Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        body {
+            background-color: #DFF5FF;
+        }
+
+        header {
+            background-color: #ec141c;
+            padding: 10px 20px;
+        }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 60px;
+        }
+
+        .navbar img {
+            width: 150px;
+            height: 65px;
+            margin-right: 80px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 15px;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-links li {
+            display: inline-block;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 10px 16px;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: "";
+            background-color: white;
+            height: 2px;
+            width: 0;
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .main-box {
+            max-width: 600px;
+            margin: 100px auto;
+            background-color: #B3E5FC;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .main-box h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .main-box p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .btn:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <a href="{% url 'homepage' %}">
+                <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="UWE Logo">
+            </a>
+
+        </nav>
+    </header>
+
+    <div class="main-box">
+        <h1>Welcome to Uni Hub</h1>
+        <p>Discover events, join communities, and connect with others.</p>
+        <a href="{% url 'login' %}" class="btn">Login</a>
+        <a href="{% url 'register' %}" class="btn">Sign Up</a>
+    </div>
+
+</body>
+</html>

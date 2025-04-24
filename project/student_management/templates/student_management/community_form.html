@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community request form</title>
+    <link rel="stylesheet" href="{% static 'css/comm.css' %}"> 
+
+    <style>
+        select {
+            background-color: white;
+            color: black;
+            padding: 8px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        option {
+            color: black;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .submit {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .submit:hover {
+            background-color: darkred;
+        }
+
+        select[multiple] {
+            background-color: white;
+            color: black;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            height: auto;
+            min-height: 120px;
+            font-size: 14px;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="outer-container">
+    <div class="main-container">
+        <h2>Request to Create a Community</h2>
+
+        <form method="post" onsubmit="return showSuccessMessage()">
+            {% csrf_token %}
+            
+            <label for="id_community_name">Community Name:</label>
+            {{ form.community_name }}
+            
+            <label for="id_description">Description:</label>
+            {{ form.description }}
+        
+            <label for="id_purpose">Purpose:</label>
+            {{ form.purpose }}
+        
+            <label for="id_interests">Interests:</label>
+            {{ form.interests }}
+        
+            <button type="submit" class="submit">Submit Request</button>
+        </form>
+        
+    </div>
+</div>
+
+<script>
+    function showSuccessMessage() {
+        alert("✅ Your community request has been submitted!");
+        return true;
+    }
+</script>
+
+</body>
+</html>

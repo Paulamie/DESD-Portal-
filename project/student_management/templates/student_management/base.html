@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Uni Hub{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        body {
+            background-color: #DFF5FF;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: #ec141c;
+            padding: 10px 20px;
+        }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 60px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .uwe-logo {
+            width: 150px;
+            height: 65px;
+            margin-right: 80px;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .navbar-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 10px 16px;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .navbar-links a::after {
+            content: "";
+            background-color: white;
+            height: 2px;
+            width: 0;
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            transition: 0.3s;
+        }
+
+        .navbar-links a:hover::after {
+            width: 100%;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 80px auto;
+            background-color: #B3E5FC;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .btn:hover {
+            background-color: darkred;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #fff;
+        }
+
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: #12a3b2;
+            box-shadow: 0 0 6px rgba(18, 163, 178, 0.4);
+        }
+
+        .messages {
+            margin: 20px auto;
+            max-width: 700px;
+            text-align: center;
+        }
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .alert-error, .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+  
+  
+
+<header>
+    <nav class="navbar">
+        <a href="{% url 'homepage' %}">
+            <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="UWE Logo" class="uwe-logo">
+        </a>
+    </nav>
+</header>
+
+<div class="container">
+    {% block content %}
+    {% endblock %}
+</div>
+
+</body>
+</html>

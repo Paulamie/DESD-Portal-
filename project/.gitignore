@@ -1,0 +1,22 @@
+# Ignore database files
+*.sqlite3
+*.db
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/
+
+# Ignore migration cache, but keep actual migration files
+**/__pycache__/
+**/*.pyc
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore environment variables
+.env
+
+# Ignore static and media files (if applicable)
+staticfiles/
+media/
+

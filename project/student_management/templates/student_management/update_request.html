@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Request Profile Update</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <style>
+        body {
+            background-color: #e0f7fa;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .form-container {
+            background-color: #b3e5fc;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            margin: 80px auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        h2 {
+            color: #01579b;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            text-align: left;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        select, input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #90caf9;
+            margin-top: 5px;
+        }
+        button {
+            margin-top: 25px;
+            background-color: #0288d1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0277bd;
+        }
+        .error-list {
+            color: red;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h2>Request Profile Update</h2>
+
+        {% if form.errors %}
+            <div class="error-list">
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="field_to_update">Field to update:</label>
+                <select name="field_to_update" id="field_to_update" onchange="toggleFields()">
+                    <option value="name">Name</option>
+                    <option value="course">Course</option>
+                    <option value="profile_picture">Profile Picture</option>
+                </select>
+                
+                
+            </div>
+
+
+            <div id="new_value_wrapper">
+                <label for="new_value" id="new_value_label">New value:</label>
+                <input type="text" name="new_value" id="new_value">
+            </div>
+            
+            <div id="file-field" style="display: none;">
+                <label for="profile_picture">Upload new picture:</label>
+                <input type="file" name="profile_picture" id="profile_picture">
+            </div>
+            
+            
+
+            <button type="submit">Submit Request</button>
+        </form>
+    </div>
+    <script>
+        const oldValueInput = document.getElementById('old_value');
+        document.getElementById('new_value_wrapper').style.display = "none";
+
+    
+        function toggleFields() {
+        const field = document.getElementById('field_to_update').value;
+        const wrapper = document.getElementById('new_value_wrapper');
+        const fileField = document.getElementById('file-field');
+        const label = document.getElementById('new_value_label');
+
+        if (field === "profile_picture") {
+            wrapper.style.display = "none";
+            fileField.style.display = "block";
+        } else {
+            wrapper.style.display = "block";
+            fileField.style.display = "none";
+            label.innerText = field === "name" ? "New Name:" : "New Course:";
+        }
+
+        // Inject user values as JS-safe strings
+        const userName = "{{ user.get_full_name|escapejs }}";
+        const userCourse = "{{ user.course|default:''|escapejs }}";
+
+        // Auto-fill old value
+        if (field === "name") {
+            document.getElementById('old_value').value = userName;
+        } else if (field === "course") {
+            document.getElementById('old_value').value = userCourse;
+        }
+
+    }
+
+    window.onload = toggleFields;
+
+    </script>
+    
+        
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% load static %}  
+
+<link rel="stylesheet" href="{% static 'css/booked.css' %}"> 
+
+<h1>My Booked Events</h1>
+
+<div class="outer-container">
+    <div class="main-content"> 
+        <!--if there are any bookings -->
+        {% if booked %}
+            <div class="card-container">
+                <!-- for loop through the object to show booked events of specific user in cards -->
+                {% for booking in booked %}
+                    <div class="card">
+                        <div class="event-header">
+                            <!-- displays event name , actual location ,start time and end time-->
+                            <h2>{{ booking.event.event_name }}</h2>
+                            <p><strong>{{booking.event.actual_location }} |{{ booking.event.start_time|date:"j F Y | H:i" }} - {{ booking.event.end_time|date:"H:i" }}</strong> </p>
+                        </div>
+
+                        <!--displays info -->
+                        <div class="event-body">
+                            <p class="event-description">{{ booking.event.info }}</p>
+                        </div>
+                        <!-- in the same card option to cancel booking -->
+                        <form action="{% url 'cancel_booking' booking.event.event_id %}" method="POST">
+                            {% csrf_token %}
+                            <!--if pressed message comes up to confirm to cancel booking -->
+                            <!--if canceled removed from the my booked event list and database-->
+                            <button type="submit" class="cancel-button" onclick="return confirmLinkClick()">Cancel Booking</button>
+                        </form>
+                    </div> 
+                {% endfor %}
+            </div> 
+        {% else %}
+        <!--else would display message if there are none booked-->
+        <p style="color: black;">You haven't booked any events yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function confirmLinkClick() {
+        return confirm("Are you sure you want to cancel booking?");
+    }
+</script>
