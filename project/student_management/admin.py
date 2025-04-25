@@ -3,6 +3,10 @@ from django.db import models
 from django.utils import timezone
 from django.contrib import messages
 from .models import CommunityRequest, Event, Community, Society, Interest, UpdateRequest, CommunityMembership
+from django.core.files.base import ContentFile
+from .models import SocietyJoinRequest
+
+
 
 
 
@@ -87,15 +91,18 @@ def approve_update_request(modeladmin, request, queryset):
         elif field == 'course':
             user.course = obj.new_value
 
-        elif field == 'profile picture' and obj.profile_picture:
+        elif field == 'profile_picture' and obj.profile_picture:
             filename = os.path.basename(obj.profile_picture.name)
+            print(f"🖼 Saving profile picture {filename} to user {user.email}")
+
             try:
-                obj.profile_picture.open()
+                obj.profile_picture.open() 
                 user.profile_picture.save(
                     filename,
                     ContentFile(obj.profile_picture.read()),
                     save=True
                 )
+                print(f"✅ Profile picture saved successfully.")
             except Exception as e:
                 print(f"❌ Error saving profile picture: {e}")
 
@@ -113,7 +120,6 @@ def reject_update_request(modeladmin, request, queryset):
 approve_update_request.short_description = "Approve selected update requests"
 reject_update_request.short_description = "Reject selected update requests"
 
-from django.core.files.base import ContentFile
 
 @admin.register(UpdateRequest)
 class UpdateRequestAdmin(admin.ModelAdmin):
@@ -126,3 +132,24 @@ class CommunityMembershipAdmin(admin.ModelAdmin):
     list_display = ('user', 'community', 'joined_at')
     list_filter = ('community',)
     search_fields = ('user__first_name', 'user__last_name', 'community__community_name')
+
+# --- Society Join Request Actions ---
+def approve_society_join_request(modeladmin, request, queryset):
+    for join_req in queryset:
+        join_req.status = 'approved'
+        join_req.reviewed_by = request.user
+        join_req.reviewed_at = timezone.now()
+        join_req.society.members.add(join_req.user)
+        join_req.save()
+    modeladmin.message_user(request, "✅ Selected society join requests approved.", messages.SUCCESS)
+
+def reject_society_join_request(modeladmin, request, queryset):
+    queryset.update(status='rejected', reviewed_by=request.user, reviewed_at=timezone.now())
+    modeladmin.message_user(request, "❌ Selected society join requests rejected.", messages.ERROR)
+
+@admin.register(SocietyJoinRequest)
+class SocietyJoinRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'society', 'reason', 'status', 'created_at', 'reviewed_by', 'reviewed_at')
+    list_filter = ('status', 'society')
+    search_fields = ('user__first_name', 'user__last_name', 'society__society_name')
+    actions = [approve_society_join_request, reject_society_join_request]

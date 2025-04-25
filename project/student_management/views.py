@@ -9,45 +9,46 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Forms & Models
-from .forms import UserRegisterForm, CommunityForm
-from .models import Event, EventDetails, User, CommunityRequest, Post
+from .forms import UserRegisterForm, CommunityForm, UpdateRequestForm, EventForm, JoinSocietyForm
+from .models import (
+    Event, EventDetails, User, CommunityRequest, UpdateRequest,
+    Community, Post, Society, CommunityMembership, Interest
+)
 
 # REST Framework
+from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
-# ViewSets
-from .serializers import UpdateRequestSerializer, CommunitySerializer, EventSerializer
-from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
-from django.views.generic.edit import CreateView
-from .models import UpdateRequest
-from .models import Community
-from .models import Event, EventDetails, User, CommunityRequest, UpdateRequest, Community, Post
-from .serializers import PostSerializer 
-from django.utils import timezone
-from django.views import View
-from django.shortcuts import render, redirect
-from .models import UpdateRequest
-from .forms import UpdateRequestForm
-from django.views import View
-from django.utils import timezone
-from django.db.models import Q
+from rest_framework.views import APIView
 
+# Serializers
+from .serializers import (
+    UpdateRequestSerializer, CommunitySerializer, EventSerializer, PostSerializer
+)
 
-from django.core.mail import send_mail
+# Django Tools
+from django.utils import timezone
+from django.db.models import Q, Count
+from django.views.generic import CreateView
+from django.views import View
+from django.views.decorators.http import require_POST
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse
 from django.conf import settings
-import json
+from django.utils.timezone import make_aware
+from datetime import datetime
+from itertools import chain
+import random
+from .models import SocietyJoinRequest 
+
+# Home Views
 
 def homepage(request):
     if request.user.is_authenticated:
-        return redirect('home')  # Redirect logged-in users to home
+        return redirect('home')
     return render(request, 'student_management/index.html')
-
-from .models import CommunityMembership
 
 @login_required
 def home(request):
@@ -59,23 +60,12 @@ def home(request):
 
     posts = Post.objects.select_related('user').order_by('-timestamp')
     joined_communities = CommunityMembership.objects.filter(user=request.user).select_related('community')
-
-    context = {
+    return render(request, 'student_management/home.html', {
         'posts': posts,
         'joined_communities': [jc.community for jc in joined_communities]
-    }
-    return render(request, 'student_management/home.html', context)
+    })
 
-
-def send_test_email(request):
-    send_mail(
-        subject='Test Email from Django',
-        message='Hey! This is a test email to confirm your Django email is working.',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=['ilwadabdi234@gmail.com'],  
-        fail_silently=False,
-    )
-    return HttpResponse(" Test email function works!!!!!")
+# Authentication Views
 
 def register(request):
     if request.method == 'POST':
@@ -83,7 +73,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('home')  # Redirect to home after registration
+            return redirect('home')
     else:
         form = UserRegisterForm()
     return render(request, 'student_management/register.html', {'form': form})
@@ -95,7 +85,7 @@ def login_view(request):
         user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
-            return redirect('home')  # Redirect to home after login
+            return redirect('home')
         else:
             return render(request, 'student_management/login.html', {'error': 'Invalid email or password'})
     return render(request, 'student_management/login.html')
@@ -104,12 +94,29 @@ def logout_view(request):
     logout(request)
     return redirect('homepage')
 
+def send_test_email(request):
+    from django.core.mail import send_mail
+    send_mail(
+        subject='Test Email from Django',
+        message='Hey! This is a test email to confirm your Django email is working.',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=['ilwadabdi234@gmail.com'],
+        fail_silently=False,
+    )
+    return HttpResponse(" Test email function works!!!!!")
+
+# Event Views
+
+@login_required
 def events(request):
     query = request.GET.get('search', '')
     filter_option = request.GET.get('filter', '')
+    society_filter = request.GET.get('society', '')
+    community_filter = request.GET.get('community', '')
 
-    # only display events that are not in the past of the current time and date
-    events = Event.objects.filter(start_time__gte=timezone.now())
+    approved_communities = Community.objects.filter(is_approved=True)
+    community_requests = CommunityRequest.objects.filter(status='approved')
+    events = Event.objects.filter(start_time__gte=timezone.now(), is_approved=True, community__in=approved_communities).order_by('-start_time')
 
     if query:
         events = events.filter(
@@ -123,47 +130,86 @@ def events(request):
     elif filter_option == 'on-campus':
         events = events.filter(location_type='On-Campus')
 
-    return render(request, 'student_management/event.html', {'events': events})
+    if society_filter:
+        events = events.filter(society__society_id=society_filter)
 
-from django.db.models import Q
-from django.db.models import Q
-from django.db.models import Q
-from itertools import chain
+    if community_filter:
+        events = events.filter(community__community_id=community_filter)
+        selected_community = Community.objects.filter(community_id=community_filter).first()
+        if selected_community:
+            community_requests = community_requests.filter(community_name=selected_community.community_name)
 
-from .models import CommunityMembership  # already imported, just for clarity
-from itertools import chain
-from django.db.models import Q
+    societies = Society.objects.all()
+    communities = approved_communities
 
+    return render(request, 'student_management/event.html', {
+        'events': events,
+        'community_requests': community_requests,
+        'societies': societies,
+        'communities': communities
+    })
+
+class EventRequestCreateView(LoginRequiredMixin, CreateView):
+    model = Event
+    form_class = EventForm
+    template_name = 'student_management/event_form.html'
+    success_url = reverse_lazy('events')
+
+    def form_valid(self, form):
+        form.instance.requester = self.request.user
+        return super().form_valid(form)
+
+@login_required
+def booked_events(request):
+    booked = EventDetails.objects.filter(user_id=request.user.user_id)
+    return render(request, "student_management/booked_event.html", {'booked': booked})
+
+@login_required
+def booked(request, event_id):
+    event = get_object_or_404(Event, event_id=event_id)
+    user = get_object_or_404(User, user_id=request.user.pk)
+    if not EventDetails.objects.filter(event=event, user=user).exists():
+        EventDetails.objects.create(event=event, user=user)
+    return redirect('booked_events')
+
+@login_required
+def cancel_booking(request, event_id):
+    event = get_object_or_404(Event, event_id=event_id)
+    user = get_object_or_404(User, user_id=request.user.pk)
+    booking = EventDetails.objects.filter(event=event, user=user)
+    if booking.exists():
+        booking.delete()
+        messages.success(request, "Your booking has been canceled successfully.")
+    else:
+        messages.error(request, "You don't have a booking for this event.")
+    return redirect('booked_events')
+
+@login_required
 def community(request):
     search_query = request.GET.get('search', '')
     filter_option = request.GET.get('filter', '')
 
-    # Get approved communities and requests
     communities = Community.objects.filter(is_approved=True)
-    community_requests = CommunityRequest.objects.filter(status='Approved')
-    community_requests_all = CommunityRequest.objects.all()
+    community_requests = []
 
-    # Apply search filter
     if search_query:
         communities = communities.filter(
             Q(community_name__icontains=search_query) |
             Q(description__icontains=search_query)
         )
-        community_requests = community_requests.filter(
-            Q(community_name__icontains=search_query) |
-            Q(description__icontains=search_query)
-        )
 
-    # Filter by logged-in user's own requests
     if filter_option == 'my_requests' and request.user.is_authenticated:
         communities = communities.filter(com_leader=request.user)
-        community_requests = community_requests_all.filter(requester=request.user)
+        community_requests = CommunityRequest.objects.filter(requester=request.user)
 
-    # Combine all visible community objects (Community + CommunityRequest)
-    combined = communities  # Only show actual approved Community models
+        if search_query:
+            community_requests = community_requests.filter(
+                Q(community_name__icontains=search_query) |
+                Q(description__icontains=search_query)
+            )
 
+    combined = list(chain(communities, community_requests))
 
-    # ✅ Add this logic to check which communities the user has already joined
     joined_ids = set()
     if request.user.is_authenticated:
         joined_ids = set(
@@ -171,23 +217,66 @@ def community(request):
             .values_list('community__community_id', flat=True)
         )
 
-
     return render(request, 'student_management/community.html', {
-        'communities': communities,
+        'communities': combined,
         'joined_ids': joined_ids,
         'query': search_query,
         'filter_option': filter_option,
     })
 
+class CommunityRequestCreateView(LoginRequiredMixin, CreateView):
+    model = CommunityRequest
+    form_class = CommunityForm
+    template_name = 'student_management/community_form.html'
+    success_url = reverse_lazy('community')
+
+    def form_valid(self, form):
+        form.instance.requester = self.request.user
+        messages.success(self.request, "Your request has been submitted!")
+        return super().form_valid(form)
+
+@login_required
+def profile(request):
+    return render(request, 'student_management/profile.html', {'user': request.user})
+
+@login_required
+def join_society(request, society_id):
+    society = get_object_or_404(Society, pk=society_id)
+
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+
+        # Check if a pending request already exists
+        existing = SocietyJoinRequest.objects.filter(user=request.user, society=society)
+        if existing.exists():
+            messages.info(request, "You've already submitted a request for this society.")
+            return redirect('societies')
+
+        # Create the join request
+        SocietyJoinRequest.objects.create(
+            user=request.user,
+            society=society,
+            reason=reason,
+            status='pending'
+        )
+        messages.success(request, f"✅ Your join request for {society.society_name} has been submitted.")
+        return redirect('societies')
+
+    return render(request, 'student_management/join_form.html', {
+        'society': society
+    })
 
 
-from .models import CommunityMembership
+@login_required
+def leave_society(request, society_id):
+    society = get_object_or_404(Society, pk=society_id)
+    society.members.remove(request.user)
+    messages.info(request, f"You've left {society.society_name}.")
+    return redirect('societies')
 
 @login_required
 def join_community(request, community_id):
     community = get_object_or_404(Community, community_id=community_id, is_approved=True)
-
-    # Check if already joined
     already_member = CommunityMembership.objects.filter(user=request.user, community=community).exists()
 
     if not already_member:
@@ -198,69 +287,90 @@ def join_community(request, community_id):
 
     return redirect('community')
 
+@login_required
+def societies_view(request):
+    user = request.user
 
-def booked_events(request):
-    user = request.user  #get the current user 
-    #filters the event details based on user_id logged in 
-    booked = EventDetails.objects.filter(user_id=request.user.user_id)
-    return render(request, "student_management/booked_event.html", {'booked': booked})
+    tag_filter = request.GET.get('tag')
+    sort = request.GET.get('sort')
 
-def booked(request, event_id):
-    event = get_object_or_404(Event, event_id=event_id)  
-    
-    print(f"User Object: {request.user}")  # Debugging line
-    print(f"User PK: {request.user.pk}")  # Debugging line
+    all_tags = Interest.objects.all()
+    joined_societies = user.joined_societies.all()
+    new_societies = Society.objects.exclude(
+        society_id__in=joined_societies.values_list('society_id', flat=True)
+    )
 
-    # Ensure the user exists in the database
-    user = get_object_or_404(User, user_id=request.user.pk)
+    if tag_filter:
+        new_societies = new_societies.filter(interests__name=tag_filter)
 
-    # Check if the user has already booked this event
-    existing_booking = EventDetails.objects.filter(event=event, user=user).exists()
+    if sort == 'popular':
+        new_societies = new_societies.annotate(num_members=Count('members')).order_by('-num_members')
+    elif sort == 'newest':
+        new_societies = new_societies.order_by('-created_at')
+    elif sort == 'alphabetical':
+        new_societies = new_societies.order_by('society_name')
 
-    #if it doesnt exist would add it to the database
-    if not existing_booking:
-        EventDetails.objects.create(event=event, user=user)
+    user_tags = Interest.objects.filter(societies__in=joined_societies).distinct()
+    recommended_societies = Society.objects.filter(
+        interests__in=user_tags
+    ).exclude(
+        society_id__in=joined_societies.values_list('society_id', flat=True)
+    ).distinct()[:5]
 
-    # redirect to the my booked events page
-    return redirect('booked_events')  
+    for society in new_societies:
+        society.mutual_friends = random.randint(0, 5)
 
-def cancel_booking(request, event_id):
-    #get the event and user models event_id and their user_id 
-    event = get_object_or_404(Event, event_id=event_id)
-    user = get_object_or_404(User, user_id=request.user.pk)
+    featured_society = Society.objects.annotate(num_members=Count('members')).order_by('-num_members').first()
+    upcoming_events = Event.objects.filter(start_time__gte=timezone.now()).order_by('start_time')[:3]
+    join_requests = SocietyJoinRequest.objects.filter(user=user)
+    join_status_map = {r.society_id: r.status for r in join_requests}
 
-    #filter both the event_id and user_id
-    booking = EventDetails.objects.filter(event=event, user=user)
-    
-    #if found 
-    if booking.exists():
-        #delete the booking and display message
-        booking.delete()
-        messages.success(request, "Your booking has been canceled successfully.")
-    else:
-        #else display this
-        messages.error(request, "You don't have a booking for this event.")
 
-    #redirect to my_booked events page
-    return redirect('booked_events') 
+    context = {
+        'all_tags': all_tags,
+        'joined_societies': joined_societies,
+        'new_societies': new_societies,
+        'featured_society': featured_society,
+        'upcoming_events': upcoming_events,
+        'recommended_societies': recommended_societies,
+        'join_status_map': join_status_map,
+    }
 
-class CommunityRequestCreateView(LoginRequiredMixin, CreateView):
-    #use the model and form
-    model = CommunityRequest
-    form_class = CommunityForm
-    template_name = 'student_management/community_form.html'
-    #if sucessful redirect to the community page
-    success_url = reverse_lazy('community')  
+    return render(request, 'student_management/societies.html', context)
 
-    def form_valid(self, form):
-        #get the user_id of the requester that is logged in 
-        form.instance.requester = self.request.user
-        #save the form
-        response = super().form_valid(form)
-        #display the message
-        messages.success(self.request, "Your request has been submitted!")
-        return response
-    
+# Admin Views
+
+@staff_member_required
+def admin_community_requests(request):
+    pending = CommunityRequest.objects.filter(status='pending')
+    return render(request, 'student_management/admin_community_requests.html', {'requests': pending})
+
+@staff_member_required
+@require_POST
+def approve_community_request(request, request_id):
+    req = get_object_or_404(CommunityRequest, id=request_id)
+    req.status = 'approved'
+    req.reviewed_by = request.user
+    req.save()
+    Community.objects.create(
+        com_leader=req.requester.get_full_name(),
+        community_name=req.community_name,
+        description=req.description,
+        is_approved=True
+    )
+    return redirect('admin_community_requests')
+
+@staff_member_required
+@require_POST
+def reject_community_request(request, request_id):
+    req = get_object_or_404(CommunityRequest, id=request_id)
+    req.status = 'rejected'
+    req.reviewed_by = request.user
+    req.save()
+    return redirect('admin_community_requests')
+
+# REST API Views
+
 class UpdateRequestViewSet(viewsets.ModelViewSet):
     queryset = UpdateRequest.objects.all()
     serializer_class = UpdateRequestSerializer
@@ -285,17 +395,16 @@ class CommunityAdminViewSet(viewsets.ModelViewSet):
         community.is_approved = True
         community.save()
         return Response({'status': 'approved'})
-    
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         community = self.get_object()
         community.is_approved = False
         community.save()
         return Response({'status': 'rejected'})
-    
+
 class EventAdminViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
-    serializer_class = EventSerializer  # Use your existing serializer
+    serializer_class = EventSerializer
     permission_classes = [IsAdminUser]
 
     @action(detail=True, methods=['post'])
@@ -311,7 +420,6 @@ class EventAdminViewSet(viewsets.ModelViewSet):
         event.is_approved = False
         event.save()
         return Response({'status': 'rejected'})
-    
 class EventSearchViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Event.objects.filter(is_approved=True).order_by('start_time')
     serializer_class = EventSerializer
@@ -331,125 +439,6 @@ class PostSearchViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['content', 'user__first_name', 'user__last_name', 'timestamp']
 
-from .models import CommunityRequest
-from django.contrib.admin.views.decorators import staff_member_required  # only admin users
-from django.shortcuts import render, redirect
-
-@staff_member_required
-def admin_community_requests(request):
-    requests = CommunityRequest.objects.filter(status='pending')
-    return render(request, 'student_management/admin_community_requests.html', {'requests': requests})
-
-@staff_member_required
-def approve_community_request(request, request_id):
-    req = CommunityRequest.objects.get(pk=request_id)
-    req.status = 'approved'
-    req.save()
-    return redirect('admin_community_requests')
-
-@staff_member_required
-def reject_community_request(request, request_id):
-    req = CommunityRequest.objects.get(pk=request_id)
-    req.status = 'rejected'
-    req.save()
-    return redirect('admin_community_requests')
-
-from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.http import require_POST
-
-@staff_member_required
-def admin_community_requests(request):
-    pending = CommunityRequest.objects.filter(status='pending')
-    return render(request, 'student_management/admin_community_requests.html', {'requests': pending})
-
-@staff_member_required
-@require_POST
-def approve_community_request(request, request_id):
-    req = get_object_or_404(CommunityRequest, id=request_id)
-    req.status = 'approved'
-    req.reviewed_by = request.user
-    req.save()
-
-    # Optional: auto-create Community
-    Community.objects.create(
-        com_leader=req.requester.get_full_name(),
-        community_name=req.community_name,
-        description=req.description,
-        is_approved=True
-    )
-    return redirect('admin_community_requests')
-
-@staff_member_required
-@require_POST
-def reject_community_request(request, request_id):
-    req = get_object_or_404(CommunityRequest, id=request_id)
-    req.status = 'rejected'
-    req.reviewed_by = request.user
-    req.save()
-    return redirect('admin_community_requests')
-
-from django.shortcuts import render, redirect
-from django.views.generic import CreateView
-from .forms import UpdateRequestForm
-from .models import UpdateRequest
-
-class UpdateRequestCreateView(CreateView):
-    model = UpdateRequest
-    form_class = UpdateRequestForm
-    template_name = 'student_management/update_request.html'
-    success_url = '/home' 
-
-    def form_valid(self, form):
-        # Ensure the user submitting the form is logged in
-        form.instance.user = self.request.user
-        return super().form_valid(form)
-
-
-class UpdateRequestCreateView(View):
-    def get(self, request):
-        form = UpdateRequestForm()
-        return render(request, 'student_management/update_request.html', {'form': form})
-
-    def post(self, request):
-        form = UpdateRequestForm(request.POST, request.FILES)
-        if form.is_valid():
-            field = form.cleaned_data['field_to_update']
-            new_value = form.cleaned_data['new_value']
-            profile_picture = request.FILES.get('profile_picture')
-
-            # Auto-detect old value
-            if field == 'name':
-                old = request.user.get_full_name()
-            elif field == 'course':
-                old = request.user.course
-            else:
-                old = ''  
-
-            update_request = UpdateRequest.objects.create(
-                user=request.user,
-                field_to_update=field.capitalize(),
-                old_value=old,
-                new_value=new_value if field != 'profile_picture' else '',
-                profile_picture=profile_picture if field == 'profile_picture' else None,
-                status='pending',
-                created_at=timezone.now()
-            )
-
-            messages.success(request, "Your update request was submitted.")
-            return redirect('home')
-
-
-@login_required
-def profile(request):
-    # Assuming you want to show user's details
-    return render(request, 'student_management/profile.html', {'user': request.user})
-
-def societies(request):
-    societies = Community.objects.filter(is_approved=True)  
-    return render(request, 'student_management/societies.html', {'societies': societies})
-
-from rest_framework.views import APIView
-
 class ProtectedEventsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -457,30 +446,17 @@ class ProtectedEventsView(APIView):
         events = Event.objects.all()
         serializer = EventSerializer(events, many=True)
         return Response(serializer.data)
-    
-from django.utils.timezone import make_aware
-from datetime import datetime
-from django.db.models import Q
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from student_management.models import Post
 
 @login_required
 def search_posts(request):
     query = request.GET.get('search', '').strip()
     sort = request.GET.get('sort')
-    
-    # Start with public posts
     posts = Post.objects.filter(visibility='public').select_related('user')
 
     if query:
         parsed_date = None
         today_year = datetime.now().year
-
-        date_formats = [
-            "%d/%m", "%d-%m", "%d/%m/%Y", "%Y-%m-%d",
-            "%d %b %Y", "%d %B %Y"
-        ]
+        date_formats = ["%d/%m", "%d-%m", "%d/%m/%Y", "%Y-%m-%d", "%d %b %Y", "%d %B %Y"]
 
         for fmt in date_formats:
             try:
@@ -505,7 +481,6 @@ def search_posts(request):
                 Q(comments_count__icontains=query)
             )
 
-    # ✅ Apply sorting *after* filtering
     if sort == 'oldest':
         posts = posts.order_by('timestamp')
     else:
@@ -516,3 +491,37 @@ def search_posts(request):
         'query': query,
         'sort': sort
     })
+
+class UpdateRequestCreateView(View):
+    def get(self, request):
+        form = UpdateRequestForm()
+        return render(request, 'student_management/update_request.html', {'form': form})
+
+    def post(self, request):
+        form = UpdateRequestForm(request.POST, request.FILES)
+        if form.is_valid():
+            field = form.cleaned_data['field_to_update']
+            new_value = form.cleaned_data['new_value']
+            profile_picture = request.FILES.get('profile_picture')
+
+            if field == 'name':
+                old = request.user.get_full_name()
+            elif field == 'course':
+                old = request.user.course
+            else:
+                old = ''
+
+            UpdateRequest.objects.create(
+                user=request.user,
+                field_to_update=field.capitalize(),
+                old_value=old,
+                new_value=new_value if field != 'profile_picture' else '',
+                profile_picture=profile_picture if field == 'profile_picture' else None,
+                status='pending',
+                created_at=timezone.now()
+            )
+
+            messages.success(request, "Your update request was submitted.")
+            return redirect('home')
+
+        return render(request, 'student_management/update_request.html', {'form': form})

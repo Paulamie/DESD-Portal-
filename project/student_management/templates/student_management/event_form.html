@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Request Form</title>
+    <link rel="stylesheet" href="{% static 'css/comm.css' %}">
+
+    <style>
+        select {
+            background-color: white;
+            color: black;
+            padding: 8px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        option {
+            color: black;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .submit {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .submit:hover {
+            background-color: darkred;
+        }
+
+        select[multiple] {
+            width: 100%;
+            min-height: 120px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="outer-container">
+    <div class="main-container">
+        <h2>Request to Organize an Event</h2>
+
+        <form method="post" onsubmit="return showSuccessMessage()">
+            {% csrf_token %}
+            
+            <label for="id_event_name">Event Name:</label>
+            {{ form.event_name }}
+
+            <label for="id_start_time">Start DateTime:</label>
+            {{ form.start_time }}
+            {% for error in form.start_time.errors %}
+            {% comment %} make this red {% endcomment %}
+                <div class="error" style="color:red">{{ error }}</div>
+            {% endfor %}
+
+            <label for="id_end_time">End DateTime:</label>
+            {{ form.end_time }}
+            {% for error in form.end_time.errors %}
+                <div class="error" style="color:red">{{ error }}</div>
+            {% endfor %}
+            
+            <label for="id_info">Event Info:</label>
+            {{ form.info }}
+            
+            <label for="id_community">Community:</label>
+            {{ form.community }}
+
+            <label for="id_society">Society:</label>
+            {{ form.society }}
+
+            <label for="id_location_type">Location Type:</label>
+            {{ form.location_type }}
+
+            <label for="id_actual_location">Actual Location / online link (if any):</label>
+            {{ form.actual_location }}
+
+            <button type="submit" class="submit">Submit Request</button>
+        </form>
+        
+    </div>
+</div>
+
+<script>
+    {% comment %} fix it the message to come up right  {% endcomment %}
+    function showSuccessMessage() {
+        const form = document.querySelector('form');
+        if (!form.checkValidity()){
+            alert("Double check form")
+            return false;
+        }
+        else{
+            alert("✅ Your community request has been submitted!");
+            return true;
+            form.submit();
+        }
+    
+    }
+</script>
+
+{% comment %} Fix the message  {% endcomment %}
+
+</body>
+</html>

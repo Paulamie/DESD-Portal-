@@ -13,17 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(sn$)6qjm%@basoy0ffsg0v#ne_lpuoyk67n1jp^u5sw6$v*&+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False #DON'T CHANGE THIS
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'paulamie.pythonanywhere.com'] #DON'T CHANGE THIS.
+DEBUG = True
 
-LOGIN_URL = 'login'
-LOGOUT_REDIRECT_URL = 'login'  # Optional: after logout
-LOGIN_REDIRECT_URL = 'home'    # Optional: after login
+ALLOWED_HOSTS = []
 
-
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles/')
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -57,7 +50,7 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],  
+        'DIRS': [],  # You can add custom templates dir like BASE_DIR / 'templates'
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,17 +66,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'project.wsgi.application'
 
 # Database using environment variables
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'Paulamie$default',
-#         'USER': 'Paulamie',
-#         'PASSWORD': 'pearl150203',
-#         'HOST': 'paulamie.mysql.pythonanywhere-services.com',
-#         'PORT': '3306',
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -122,8 +104,10 @@ USE_TZ = True
 
 # Static and media
 STATIC_URL = 'static/'
+# STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -141,7 +125,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #     }
 # }
 
+import os
 
+DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT', '3306'),
+    },
+}
+print("DB_NAME:", os.environ.get('DB_NAME'))
+print("DB_HOST:", os.environ.get('DB_HOST'))
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -169,13 +170,10 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'AUTH_HEADER_TYPES': ('JWT',),
-    "USER_ID_FIELD": "user_id",
-    "USER_ID_CLAIM": "user_id",
 }
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')

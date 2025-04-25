@@ -6,6 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Societies</title>
     <link rel="stylesheet" href="{% static 'css/societies.css' %}">
+    <script>
+        function confirmJoin() {
+            return confirm("Are you sure you want to join this society?");
+        }
+        function confirmLeave() {
+            return confirm("Are you sure you want to leave this society?");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.read-more-toggle').forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const desc = toggle.previousElementSibling;
+                    desc.classList.toggle('expanded');
+                    toggle.textContent = desc.classList.contains('expanded') ? 'Show less' : 'Read more';
+                });
+            });
+        });
+    </script>
 </head>
 <body>
 
@@ -16,7 +34,11 @@
         </a>
         <ul class="nav-links">
             <li><a href="{% url 'events' %}">Events</a></li>
+<<<<<<< HEAD
             <li><a href="{% url 'societies' %}">Societies</a></li>
+=======
+            <li><a href="{% url 'societies' %}" class="{% if request.path == '/societies/' %}active-link{% endif %}">Societies</a></li>
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
             <li><a href="{% url 'community' %}">Communities</a></li>
             <li><a href="#">Friends</a></li>
             <li><a href="{% url 'search_posts' %}">Posts</a></li>
@@ -40,9 +62,19 @@
 <!-- Tag Filter -->
 <div class="tag-filter">
     <p>Filter by tag:</p>
+<<<<<<< HEAD
     {% for tag in all_tags %}
         <a href="?tag={{ tag.name }}">{{ tag.name }}</a>
     {% endfor %}
+=======
+    <div class="tag-list">
+        {% for tag in all_tags %}
+            <a class="tag-link" href="?tag={{ tag.name }}">{{ tag.name }}</a>
+        {% empty %}
+            <p>No tags available.</p>
+        {% endfor %}
+    </div>
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
 </div>
 
 <div class="outer-container">
@@ -51,8 +83,36 @@
         <p>Explore and join societies that interest you.</p>
     </div>
 
+<<<<<<< HEAD
     <div class="societies-wrapper">
 
+=======
+    <!-- Top Society + Upcoming Events -->
+    <div class="dropdown-row">
+        {% if featured_society %}
+            <details class="dropdown-card" open>
+                <summary>🏆 Top Society of the Month</summary>
+                <div>
+                    <strong>{{ featured_society.society_name }}</strong> – {{ featured_society.description }}
+                </div>
+            </details>
+        {% endif %}
+        <details class="dropdown-card" open>
+            <summary>📅 Upcoming Events</summary>
+            {% if upcoming_events %}
+                <ul>
+                    {% for event in upcoming_events %}
+                        <li>{{ event.start_time|date:"F j, Y" }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No upcoming events at the moment!</p>
+            {% endif %}
+        </details>
+    </div>
+
+    <div class="societies-wrapper">
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
         <!-- Joined Societies -->
         <div class="column-left">
             <h2>Your Societies</h2>
@@ -60,23 +120,45 @@
                 {% for society in joined_societies %}
                     <div class="card">
                         <div class="society-header">
+<<<<<<< HEAD
                             <h3>{{ society.society_name }}</h3>
                             <p><strong>Leader:</strong> {{ society.soc_leader }}</p>
                             <p>{{ society.popularity }} members</p>
+=======
+                            <h3>
+                                {{ society.society_name }}
+                                {% if society.event_info %}
+                                    <span class="event-badge">🎉 Event Soon!</span>
+                                {% endif %}
+                            </h3>
+                            <p><strong>Leader:</strong> {{ society.soc_leader }}</p>
+                            <p>{{ society.members.count }} members</p>
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
                             <p><em>Created on {{ society.created_at|date:"F j, Y" }}</em></p>
                         </div>
                         {% if society.image %}
                             <img class="society-image" src="{{ society.image.url }}" alt="{{ society.society_name }} image">
                         {% endif %}
                         <div class="society-tags">
+<<<<<<< HEAD
                             {% for tag in society.tags.all %}
+=======
+                            {% for tag in society.interests.all %}
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
                                 <span class="tag">{{ tag.name }}</span>
                             {% endfor %}
                         </div>
                         <div class="society-body">
+<<<<<<< HEAD
                             <p class="society-description">{{ society.description }}</p>
                         </div>
                         <form method="post" action="{% url 'leave_society' society.society_id %}">
+=======
+                            <p class="society-description short">{{ society.description }}</p>
+                            <span class="read-more-toggle">Read more</span>
+                        </div>
+                        <form method="post" action="{% url 'leave_society' society.society_id %}" onsubmit="return confirmLeave()">
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
                             {% csrf_token %}
                             <button type="submit" class="leave-button">Leave Society</button>
                         </form>
@@ -102,19 +184,49 @@
                 </select>
             </form>
 
+<<<<<<< HEAD
+=======
+            {% if recommended_societies %}
+                <div class="recommendations">
+                    <h4>💡 Based on your interests</h4>
+                    <ul>
+                        {% for society in recommended_societies %}
+                            <li>{{ society.society_name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
             {% if new_societies %}
                 {% for society in new_societies %}
                     <div class="card">
                         <div class="society-header">
+<<<<<<< HEAD
                             <h3>{{ society.society_name }}</h3>
                             <p><strong>Leader:</strong> {{ society.soc_leader }}</p>
                             <p>{{ society.popularity }} members</p>
                             <p><em>Created on {{ society.created_at|date:"F j, Y" }}</em></p>
+=======
+                            <h3>
+                                {{ society.society_name }}
+                                {% if society.event_info %}
+                                    <span class="event-badge">🎉 Event Soon!</span>
+                                {% endif %}
+                            </h3>
+                            <p><strong>Leader:</strong> {{ society.soc_leader }}</p>
+                            <p>{{ society.members.count }} members</p>
+                            <p><em>Created on {{ society.created_at|date:"F j, Y" }}</em></p>
+                            {% if society.mutual_friends %}
+                                <p><small>👥 {{ society.mutual_friends }} of your friends joined</small></p>
+                            {% endif %}
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
                         </div>
                         {% if society.image %}
                             <img class="society-image" src="{{ society.image.url }}" alt="{{ society.society_name }} image">
                         {% endif %}
                         <div class="society-tags">
+<<<<<<< HEAD
                             {% for tag in society.tags.all %}
                                 <span class="tag">{{ tag.name }}</span>
                             {% endfor %}
@@ -126,13 +238,37 @@
                             {% csrf_token %}
                             <button type="submit" class="join-button">Join Society</button>
                         </form>
+=======
+                            {% for tag in society.interests.all %}
+                                <span class="tag">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="card-actions">
+                            <span class="read-more-toggle">Read more</span>
+
+                            {% if society.society_id in join_status_map %}
+                                <button class="join-button" disabled>
+                                    Request {{ join_status_map.society_id|default:'Pending'|capfirst }}
+                                </button>
+                            {% else %}
+                                <form method="post" action="{% url 'join_society' society.society_id %}">
+                                    {% csrf_token %}
+                                    <textarea name="reason" placeholder="Why do you want to join?" required rows="2" style="width: 100%; margin-bottom: 8px;"></textarea>
+                                    <button type="submit" class="join-button">Join Society</button>
+                                </form>
+                            {% endif %}
+                        </div>
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
                     </div>
                 {% endfor %}
             {% else %}
                 <p>No new societies to join.</p>
             {% endif %}
         </div>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
     </div>
 </div>
 

@@ -49,12 +49,30 @@
                 <option value="online" {% if request.GET.filter == "online" %}selected{% endif %}>Online</option>
                 <option value="on-campus" {% if request.GET.filter == "on-campus" %}selected{% endif %}>On-Campus</option>
             </select>
-        
+
+            <select name="society" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                <option value="">All Societies</option>
+                {% for society in societies %}
+                    <option value="{{ society.society_id }}" {% if request.GET.society == society.society_id|stringformat:"s" %}selected{% endif %}>{{ society.society_name }}</option>
+                {% endfor %}
+            </select>
+            
+            <select name="community" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                <option value="">All Communities</option>
+                {% for community in communities %}
+                    <option value="{{ community.community_id }}" {% if request.GET.community == community.community_id|stringformat:"s" %}selected{% endif %}>{{ community.community_name }}</option>
+                {% endfor %}
+            </select>
+
             <button type="submit" style="padding: 8px 12px; border-radius: 4px; background-color: #0288d1; color: white; border: none;">Search</button>
         </form>
         
         
         <h1>Upcoming Events</h1>
+<<<<<<< HEAD
+=======
+        <li><a href="{% url 'request-event' %}">Request to organise new event </a></li>
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
         <a href="{% url 'booked_events'%}"><button class='booked'>My Booked Events</button></a>
         <div class="card-container">
             <!-- for loop from the event from view from database to display events -->
@@ -62,11 +80,22 @@
                 <div class="card">
                     <div class="event-header">
                         <h2>{{ event.event_name }}</h2>
+<<<<<<< HEAD
                         <p><strong> {% if event.location_type == "On-Campus" %}
                             {{ event.actual_location }}
                         {% else %}
                             Online
                         {% endif %}| {{ event.start_time|date:"j F Y | H:i" }} - {{ event.end_time|date:"H:i"  }}</strong></p>
+=======
+                        <p><strong>
+                            {% if event.location_type == "Online" %}
+                                Online
+                            {% else %}
+                                On-Campus
+                            {% endif %}
+                            | {{ event.start_time|date:"j F Y | H:i" }} - {{ event.end_time|date:"H:i" }}
+                        </strong></p>
+>>>>>>> 999ebcd8fc7b5cdc14bf1837a6d4a8909c3ed549
                     </div>
 
                     <!-- if event is online show online label if not display on-campus -->

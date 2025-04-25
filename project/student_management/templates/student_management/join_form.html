@@ -1,0 +1,37 @@
+{% load static %}
+{% load form_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Join {{ society.society_name }}</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+<body class="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 min-h-screen font-sans">
+    <div class="max-w-xl mx-auto mt-20 p-8 bg-white shadow-lg rounded-2xl border border-gray-200">
+        <h2 class="text-3xl font-bold mb-4 text-center text-purple-700">Join {{ society.society_name }}</h2>
+        <p class="text-gray-600 mb-6 text-center">{{ society.description }}</p>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">
+                        {{ field.label_tag }}
+                    </label>
+                    {{ field|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300" }}
+                    {% if field.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <div class="text-center">
+                <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition">
+                    Join Society
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,20 +1,23 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
-from .models import User
-from .models import CommunityRequest, Interest
+from .models import User, CommunityRequest, Interest, Event, UpdateRequest
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import date
 
 
-# from .models import UserProfile
-
-
+# === User Registration Form ===
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField()
-    
+
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email', 'password1', 'password2']
 
+
+# === Community Request Form ===
 class CommunityForm(forms.ModelForm):
     class Meta:
         model = CommunityRequest
@@ -31,15 +34,7 @@ class CommunityForm(forms.ModelForm):
         self.fields['interests'].queryset = Interest.objects.all()
 
 
-from .models import UpdateRequest  # Add this import at the top of your forms.py
-
-
-from django import forms
-from .models import UpdateRequest
-
-from django import forms
-from .models import UpdateRequest
-
+# === Update Request Form ===
 class UpdateRequestForm(forms.ModelForm):
     FIELD_CHOICES = [
         ('name', 'Name'),
@@ -55,3 +50,42 @@ class UpdateRequestForm(forms.ModelForm):
     class Meta:
         model = UpdateRequest
         fields = ['field_to_update', 'old_value', 'new_value', 'profile_picture']
+
+
+# === Event Form with Validations ===
+class EventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = ['event_name', 'start_time', 'end_time', 'info', 'community', 'society', 'location_type', 'actual_location']
+
+    current_time = timezone.now()
+
+    start_time = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        validators=[MinValueValidator(current_time, message="Start Datetime cannot be in the past.")],
+        initial=current_time
+    )
+
+    end_time = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        validators=[MinValueValidator(current_time, message="End Datetime cannot be in the past.")],
+        initial=current_time
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
+
+        if start_time and end_time and end_time <= start_time:
+            raise ValidationError("End Datetime must be after Start Datetime.")
+        return cleaned_data
+
+
+class JoinSocietyForm(forms.Form):
+    reason = forms.CharField(
+        label="Why do you want to join this society?",
+        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+        required=True
+    )
+

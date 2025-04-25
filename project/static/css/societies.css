@@ -24,7 +24,7 @@ header {
 }
 
 .navbar img {
-    width: 150px; /* Match Communities */
+    width: 150px;
     height: 65px;
     margin-right: 80px;
 }
@@ -65,8 +65,6 @@ header {
     width: 100%;
 }
 
-
-
 /* Flash Messages */
 .messages {
     max-width: 1000px;
@@ -80,13 +78,21 @@ header {
 }
 
 /* Societies Layout */
+.outer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.main-content {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
 .societies-wrapper {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-    max-width: 1200px;
-    padding: 20px;
-    margin: 20px auto;
 }
 
 .column-left,
@@ -130,6 +136,30 @@ header {
     line-height: 1.4;
 }
 
+.society-description.short {
+    max-height: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+}
+
+.society-description.expanded {
+    max-height: none;
+}
+
+.read-more-toggle {
+    display: inline-block;
+    color: #ec141c;
+    cursor: pointer;
+    font-size: 0.85em;
+    margin-top: 5px;
+    text-decoration: underline;
+}
+
+.card-actions {
+    margin-top: 10px;
+}
+
 .join-button,
 .leave-button {
     background-color: #ec141c;
@@ -141,6 +171,7 @@ header {
     margin-top: 10px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    display: inline-block;
 }
 
 .join-button:hover,
@@ -197,6 +228,22 @@ header {
     border-radius: 4px;
 }
 
+/* Dropdown Cards (Top society, Upcoming events) */
+.dropdown-card {
+    background-color: #fff;
+    border-left: 5px solid #ec141c;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-card summary {
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .navbar {
@@ -227,4 +274,13 @@ header {
     .sort-form {
         text-align: left;
     }
+}
+
+.status-approved {
+    color: green;
+    font-weight: bold;
+}
+.status-pending {
+    color: rgb(255, 0, 255);
+    font-weight: bold;
 }

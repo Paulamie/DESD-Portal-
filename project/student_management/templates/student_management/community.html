@@ -45,32 +45,39 @@
         <h2>Communities</h2>
         <div class="card-container">
             {% for community in communities %}
-                <div class="card">
-                    <h3>{{ community.community_name }}</h3>
-                    <p><strong>Leader:</strong> {{ community.com_leader }}</p>
-                    <p>{{ community.description }}</p>
-                    <p>{{ community.purpose }}</p>
-
-                    {% if user.is_authenticated %}
-
-                        {% if community.community_id in joined_ids %}
-                            <p style="color: purple; font-weight: bold;">✔ Joined</p>
-                        {% else %}
-                            <form method="post" action="{% url 'join_community' community.community_id %}">
-                                {% csrf_token %}
-                                <button type="submit" style="margin-top: 10px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px;">
-                                    Join Community
-                                </button>
-                            </form>
-                        {% endif %}
+                    <div class="card">
+                        <h3>{{ community.community_name }}</h3>
                 
-                    {% endif %}
-
-
-                </div>
-            {% empty %}
-                <p>No communities found.</p>
-            {% endfor %}
+                        {% if community.community_id %}
+                            <!-- It's a Community -->
+                            <p><strong>Leader:</strong> {{ community.com_leader }}</p>
+                            <p>{{ community.description }}</p>
+                            <p>{{ community.purpose }}</p>
+                
+                            {% if user.is_authenticated %}
+                                {% if community.community_id in joined_ids %}
+                                    <p style="color: purple; font-weight: bold;">✔ Joined</p>
+                                {% else %}
+                                    <form method="post" action="{% url 'join_community' community.community_id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" style="margin-top: 10px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px;">
+                                            Join Community
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                
+                        {% else %}
+                            <!-- It's a CommunityRequest -->
+                            <p><strong>Requested by:</strong> {{ community.requester }}</p>
+                            <p>{{ community.description }}</p>
+                            <p><strong>Status:</strong> {{ community.status }}</p>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p>No communities found.</p>
+                {% endfor %}
+                
         </div>
 
         <!-- Link to request new community -->
