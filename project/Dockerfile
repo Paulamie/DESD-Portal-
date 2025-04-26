@@ -1,32 +1,30 @@
-FROM python:3.12-slim
+FROM python:3.10-slim
 
-# Install system dependencies for MySQL and Python packages
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    gcc \
-    default-libmysqlclient-dev \
+    build-essential \
     libssl-dev \
     libffi-dev \
+    python3-dev \
+    default-libmysqlclient-dev \
+    pkg-config \
     netcat-openbsd \
-    mariadb-client \
-    build-essential \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean
 
-# Set working directory
+# Set work directory
 WORKDIR /app
 
-# Copy and install Python dependencies
+# Copy the requirements file first (for caching)
 COPY requirements.txt /app/
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all project files
+# Copy the rest of the app
 COPY . /app/
 
-# Make wait-for-it script executable
-RUN chmod +x /app/wait-for-it.sh
-
-# Expose port
+# Expose port 8000
 EXPOSE 8000
 
-# Wait for DB and start Django
-CMD ["sh", "-c", "/app/wait-for-it.sh db:3306 -- python manage.py runserver 0.0.0.0:8000"]
+# Command to run the app
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

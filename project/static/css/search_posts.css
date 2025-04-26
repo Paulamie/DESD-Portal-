@@ -39,3 +39,31 @@ h1 {
 .post p {
     margin: 5px 0;
 }
+
+.messages {
+    margin: 20px auto;
+    max-width: 700px;
+    text-align: center;
+}
+.alert {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+.alert-error, .alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}

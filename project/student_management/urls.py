@@ -3,6 +3,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .views import AdminSocietyRequestsView
+from student_management import views as student_views
 
 from . import views
 from .views import (
@@ -70,8 +72,15 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/protected-events/', ProtectedEventsView.as_view(), name='protected_events'),
+    path('friends/', views.friends, name='friends'),
+    path('admin_society_requests/', AdminSocietyRequestsView.as_view(), name='admin_society_requests'),
+    path('admin_society_requests/<int:request_id>/', AdminSocietyRequestsView.as_view(), name='review_society_request'),
+    path('admin/update-requests/', views.approve_update_request, name='admin_update_requests'),
+
+    path('admin/reject-update-request/<int:request_id>/', views.reject_update_request, name='reject_update_request'),
+    path('admin-update-requests/', student_views.admin_update_requests, name='admin_update_requests'),
+
 ]
 
-# Optional: Add static/media URL handling
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

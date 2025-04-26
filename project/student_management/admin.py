@@ -5,9 +5,16 @@ from django.contrib import messages
 from .models import CommunityRequest, Event, Community, Society, Interest, UpdateRequest, CommunityMembership
 from django.core.files.base import ContentFile
 from .models import SocietyJoinRequest
+from .models import Notification
+import os
 
-
-
+# Helper function for creating notifications in admin
+def create_notification(user, message, notification_type='info'):
+    Notification.objects.create(
+        user=user,
+        message=message,
+        notification_type=notification_type,
+    )
 
 
 def approve_community_request(modeladmin, request, queryset):
@@ -27,12 +34,24 @@ def approve_community_request(modeladmin, request, queryset):
                 is_approved=True
             )
 
+        create_notification(req.requester, f"Your community request for '{req.community_name}' has been approved!", 'error')
+
+
     modeladmin.message_user(request, "✅ Selected community requests were approved and communities created.", messages.SUCCESS)
+
 
 
 def reject_community_request(modeladmin, request, queryset):
     queryset.update(status='rejected', reviewed_at=timezone.now(), reviewed_by=request.user)
+
+    # Create a notification for the user
+    for req in queryset:
+
+        create_notification(req.requester, f"Your community request for '{req.community_name}' has been rejected.", 'success')
+
+        
     modeladmin.message_user(request, "❌ Selected community requests were rejected.", messages.ERROR)
+
 
 
 approve_community_request.short_description = "Approve selected requests"
@@ -70,11 +89,7 @@ class InterestAdmin(admin.ModelAdmin):
     list_display = ('interest_name',)
 
 
-
 def approve_update_request(modeladmin, request, queryset):
-    from django.core.files.base import ContentFile
-    import os
-
     for obj in queryset:
         obj.status = 'approved'
         obj.reviewed_at = timezone.now()
@@ -87,14 +102,10 @@ def approve_update_request(modeladmin, request, queryset):
             full_name = obj.new_value.strip().split(' ', 1)
             user.first_name = full_name[0]
             user.last_name = full_name[1] if len(full_name) > 1 else ''
-
         elif field == 'course':
             user.course = obj.new_value
-
         elif field == 'profile_picture' and obj.profile_picture:
             filename = os.path.basename(obj.profile_picture.name)
-            print(f"🖼 Saving profile picture {filename} to user {user.email}")
-
             try:
                 obj.profile_picture.open() 
                 user.profile_picture.save(
@@ -102,19 +113,33 @@ def approve_update_request(modeladmin, request, queryset):
                     ContentFile(obj.profile_picture.read()),
                     save=True
                 )
-                print(f"✅ Profile picture saved successfully.")
             except Exception as e:
                 print(f"❌ Error saving profile picture: {e}")
-
         user.save()
         obj.save()
+
+
+        create_notification(obj.user, f"Your profile update request for '{obj.field_to_update}' has been approved!", 'success')
+
+
 
     modeladmin.message_user(request, "✅ Selected profile updates were approved.", messages.SUCCESS)
 
 
+
 def reject_update_request(modeladmin, request, queryset):
     queryset.update(status='rejected', reviewed_at=timezone.now(), reviewed_by=request.user)
+
+    # Create a notification for the user
+    for obj in queryset:
+
+        create_notification(obj.user, f"Your profile update request for '{obj.field_to_update}' has been rejected.", 'error')
+
+
+        
+
     modeladmin.message_user(request, "❌ Selected profile updates were rejected.", messages.ERROR)
+
 
 
 approve_update_request.short_description = "Approve selected update requests"
@@ -141,11 +166,28 @@ def approve_society_join_request(modeladmin, request, queryset):
         join_req.reviewed_at = timezone.now()
         join_req.society.members.add(join_req.user)
         join_req.save()
+
+        # Create a notification for the user
+
+        create_notification(join_req.user, f"Your join request to the society '{join_req.society.society_name}' has been approved!", 'success')
+
+
+
     modeladmin.message_user(request, "✅ Selected society join requests approved.", messages.SUCCESS)
+
 
 def reject_society_join_request(modeladmin, request, queryset):
     queryset.update(status='rejected', reviewed_by=request.user, reviewed_at=timezone.now())
+
+    # Create a notification for the user
+    for join_req in queryset:
+
+        create_notification(join_req.user, f"Your join request to the society '{join_req.society.society_name}' has been rejected.", 'error')
+
+        
+
     modeladmin.message_user(request, "❌ Selected society join requests rejected.", messages.ERROR)
+
 
 @admin.register(SocietyJoinRequest)
 class SocietyJoinRequestAdmin(admin.ModelAdmin):

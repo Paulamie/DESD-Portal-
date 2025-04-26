@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Friends</title>
+    <link rel="stylesheet" href="{% static 'css/friends.css' %}">
+</head>
+<body>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+<header>
+    <nav class="navbar">
+        <a href="{% url 'home' %}">
+            <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="Logo">
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'events' %}">Events</a></li>
+            <li><a href="{% url 'societies' %}">Societies</a></li>
+            <li><a href="{% url 'community' %}">Communities</a></li>
+            <li><a href="{% url 'friends' %}" class="active-link">Friends</a></li>
+            <li><a href="{% url 'search_posts' %}">Posts</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="container">
+    <h1>Friends</h1>
+    <p>Connect with your friends and see who's in UniHub!</p>
+
+    {% if friends %}
+        {% for friend in friends %}
+        <div class="friend-card">
+            {% if friend.profile_picture %}
+                <img src="{{ friend.profile_picture.url }}" alt="{{ friend.full_name }}">
+            {% else %}
+                <img src="{% static 'images/profile_placeholder.png' %}" alt="{{ friend.full_name }}">
+            {% endif %}
+
+            <div class="friend-info">
+                <h3>{{ friend.full_name }}</h3>
+                <p>{{ friend.email }}</p>
+            </div>
+            <div class="friend-actions">
+                <button>View Profile</button>
+                <button>Send Message</button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>You have no friends yet.</p>
+    {% endif %}
+</div>
+
+</body>
+</html>

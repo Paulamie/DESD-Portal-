@@ -157,6 +157,8 @@ class EventDetails(models.Model):
     event_details_id = models.AutoField(primary_key=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id')
+    can_book = models.BooleanField(default=True)
+
 
     class Meta:
         db_table = "event_details"
@@ -221,3 +223,24 @@ class CommunityMembership(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name()} -> {self.community.community_name}"
+
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    notification_type = models.CharField(
+        max_length=50, 
+        choices=[
+            ('info', 'Info'), 
+            ('success', 'Success'), 
+            ('warning', 'Warning'), 
+            ('error', 'Error')
+        ],
+        default='info'
+    )
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Notification for {self.user.get_full_name()}: {self.message[:30]}'

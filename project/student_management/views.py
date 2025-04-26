@@ -43,6 +43,23 @@ from itertools import chain
 import random
 from .models import SocietyJoinRequest 
 
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import SocietyJoinRequest
+from .models import Notification
+from django.contrib.auth import get_user_model
+
+
+# Helper function to create notifications
+def create_notification(user, message, notification_type='info'):
+    Notification.objects.create(
+        user=user,
+        message=message,
+        notification_type=notification_type,
+    )
+
 # Home Views
 
 def homepage(request):
@@ -56,14 +73,27 @@ def home(request):
         content = request.POST.get('post_content')
         if content:
             Post.objects.create(user=request.user, content=content)
+            create_notification(request.user, f"Your post has been successfully created!", 'success')
+            messages.success(request, "✅ Your post has been created successfully!")
             return redirect('home')
 
+
     posts = Post.objects.select_related('user').order_by('-timestamp')
+    latest_update = UpdateRequest.objects.filter(user=request.user).order_by('-created_at').first()
+    
+    # NEW: Fetch friends, joined communities, and joined societies
+    friends = User.objects.exclude(user_id=request.user.user_id)
     joined_communities = CommunityMembership.objects.filter(user=request.user).select_related('community')
+    joined_societies = request.user.joined_societies.all()
+
     return render(request, 'student_management/home.html', {
         'posts': posts,
-        'joined_communities': [jc.community for jc in joined_communities]
+        'latest_update': latest_update,
+        'friends': friends,
+        'joined_communities': [membership.community for membership in joined_communities],
+        'joined_societies': joined_societies,
     })
+
 
 # Authentication Views
 
@@ -139,6 +169,9 @@ def events(request):
         if selected_community:
             community_requests = community_requests.filter(community_name=selected_community.community_name)
 
+    booked_event_ids = EventDetails.objects.filter(user=request.user).values_list('event__event_id', flat=True)
+
+
     societies = Society.objects.all()
     communities = approved_communities
 
@@ -146,7 +179,8 @@ def events(request):
         'events': events,
         'community_requests': community_requests,
         'societies': societies,
-        'communities': communities
+        'communities': communities,
+        'booked_event_ids': booked_event_ids,  # Send it to the template
     })
 
 class EventRequestCreateView(LoginRequiredMixin, CreateView):
@@ -167,22 +201,33 @@ def booked_events(request):
 @login_required
 def booked(request, event_id):
     event = get_object_or_404(Event, event_id=event_id)
-    user = get_object_or_404(User, user_id=request.user.pk)
+    user = request.user
+
     if not EventDetails.objects.filter(event=event, user=user).exists():
         EventDetails.objects.create(event=event, user=user)
-    return redirect('booked_events')
+        create_notification(user, f"You booked the event '{event.event_name}'!", 'success')
+        messages.success(request, f"✅ You have successfully booked '{event.event_name}'!")
+    else:
+        messages.info(request, f"ℹ️ You already booked '{event.event_name}'.")
+
+    return redirect('events')
+
 
 @login_required
 def cancel_booking(request, event_id):
     event = get_object_or_404(Event, event_id=event_id)
-    user = get_object_or_404(User, user_id=request.user.pk)
+    user = request.user
+
     booking = EventDetails.objects.filter(event=event, user=user)
     if booking.exists():
         booking.delete()
-        messages.success(request, "Your booking has been canceled successfully.")
+        create_notification(user, f"You canceled booking for '{event.event_name}'.", 'info')
+        messages.success(request, f"❌ You canceled your booking for '{event.event_name}'.")
     else:
-        messages.error(request, "You don't have a booking for this event.")
+        messages.error(request, "⚠️ You don't have a booking for this event.")
+
     return redirect('booked_events')
+
 
 @login_required
 def community(request):
@@ -282,10 +327,16 @@ def join_community(request, community_id):
     if not already_member:
         CommunityMembership.objects.create(user=request.user, community=community)
         messages.success(request, f"You joined {community.community_name} 🎉")
+        
+        # Create a notification for the user when they join a community
+        create_notification(request.user, f"You successfully joined the community '{community.community_name}'!", 'success')
+
+        
     else:
         messages.info(request, f"You're already a member of {community.community_name}")
-
+    
     return redirect('community')
+
 
 @login_required
 def societies_view(request):
@@ -322,8 +373,9 @@ def societies_view(request):
 
     featured_society = Society.objects.annotate(num_members=Count('members')).order_by('-num_members').first()
     upcoming_events = Event.objects.filter(start_time__gte=timezone.now()).order_by('start_time')[:3]
-    join_requests = SocietyJoinRequest.objects.filter(user=user)
-    join_status_map = {r.society_id: r.status for r in join_requests}
+    join_requests = SocietyJoinRequest.objects.filter(user=request.user)
+    join_status_map = {req.society.society_id: req.status for req in join_requests}
+
 
 
     context = {
@@ -352,13 +404,12 @@ def approve_community_request(request, request_id):
     req.status = 'approved'
     req.reviewed_by = request.user
     req.save()
-    Community.objects.create(
-        com_leader=req.requester.get_full_name(),
-        community_name=req.community_name,
-        description=req.description,
-        is_approved=True
-    )
+
+
+    create_notification(req.requester, f"Your community request for '{req.community_name}' has been approved!", 'success')
+
     return redirect('admin_community_requests')
+
 
 @staff_member_required
 @require_POST
@@ -367,6 +418,8 @@ def reject_community_request(request, request_id):
     req.status = 'rejected'
     req.reviewed_by = request.user
     req.save()
+    create_notification(req.requester, f"Your community request for '{req.community_name}' has been rejected.", 'error')
+
     return redirect('admin_community_requests')
 
 # REST API Views
@@ -525,3 +578,88 @@ class UpdateRequestCreateView(View):
             return redirect('home')
 
         return render(request, 'student_management/update_request.html', {'form': form})
+    
+@staff_member_required
+@require_POST
+def approve_update_request(request, request_id):
+    update_request = get_object_or_404(UpdateRequest, id=request_id)
+    update_request.status = 'approved'
+    update_request.save()
+
+    # Apply the changes to the user profile
+    user = update_request.user
+    if update_request.field_to_update == 'name':
+        user.first_name, user.last_name = update_request.new_value.split(' ', 1)
+    elif update_request.field_to_update == 'course':
+        user.course = update_request.new_value
+    elif update_request.field_to_update == 'profile_picture':
+        user.profile_picture = update_request.profile_picture
+
+    user.save()
+
+
+    create_notification(user, f"Your update request for '{update_request.field_to_update}' has been approved!", 'success')
+
+    messages.success(request, f"{user.username}'s update request has been approved.")
+    return redirect('admin_update_requests')
+
+
+@staff_member_required
+@require_POST
+def reject_update_request(request, request_id):
+    update_request = get_object_or_404(UpdateRequest, id=request_id)
+    update_request.status = 'rejected'
+    update_request.save()
+
+
+    create_notification(update_request.user, f"Your update request for '{update_request.field_to_update}' has been rejected.", 'error')
+
+    messages.warning(request, f"{update_request.user.username}'s update request has been rejected.")
+    return redirect('admin_update_requests')
+
+
+
+
+
+User = get_user_model()
+
+def friends(request):
+    friends = User.objects.exclude(user_id=request.user.user_id)
+    return render(request, 'student_management/friends.html', {'friends': friends})
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class AdminSocietyRequestsView(View):
+    def get(self, request):
+        join_requests = SocietyJoinRequest.objects.all().order_by('-created_at')
+        return render(request, 'admin_society_requests.html', {'join_requests': join_requests})
+
+    def post(self, request, request_id):
+        join_request = get_object_or_404(SocietyJoinRequest, id=request_id)
+        action = request.POST.get('action')
+
+        if action == 'approve':
+            join_request.status = 'approved'
+            join_request.save()
+            # Creating a notification for the user when their join request is approved
+
+            create_notification(join_request.user, f"Your join request to '{join_request.society.society_name}' has been approved!", 'success')
+
+            messages.success(request, f"{join_request.user.username}'s join request to {join_request.society.society_name} has been approved.")
+
+        elif action == 'reject':
+            join_request.status = 'rejected'
+            join_request.save()
+            # Creating a notification for the user when their join request is rejected
+
+            create_notification(join_request.user, f"Your join request to '{join_request.society.society_name}' has been rejected!", 'error')
+
+
+            messages.warning(request, f"{join_request.user.username}'s join request to {join_request.society.society_name} has been rejected.")
+
+        return redirect('admin_society_requests')
+    
+@staff_member_required
+def admin_update_requests(request):
+    updates = UpdateRequest.objects.all().order_by('-created_at')
+    return render(request, 'student_management/admin_update_requests.html', {'updates': updates})
