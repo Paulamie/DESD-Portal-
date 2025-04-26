@@ -21,6 +21,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
+# DEBUG = False #DON'T CHANGE THIS
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'paulamie.pythonanywhere.com'] #DON'T CHANGE THIS.
+
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
