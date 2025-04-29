@@ -169,11 +169,24 @@ def events(request):
         if selected_community:
             community_requests = community_requests.filter(community_name=selected_community.community_name)
 
-    booked_event_ids = EventDetails.objects.filter(user=request.user).values_list('event__event_id', flat=True)
+    booked_event_ids = EventDetails.objects.filter(user=request.user, can_book=True).values_list('event__event_id', flat=True)
 
 
     societies = Society.objects.all()
     communities = approved_communities
+    
+    for event in events:
+        #checks those that are going to the booking 
+        active_bookings = EventDetails.objects.filter(event=event, can_book=True).count()
+        #sets an attribute
+        event.active_bookings = active_bookings
+        #checks for max capacity and calculates it 
+        if event.maximum_capacity:
+            event.is_full = active_bookings >= event.maximum_capacity
+            event.spots_left = event.maximum_capacity - active_bookings
+        else:
+            event.is_full = False 
+            event.spots_left = None  
 
     return render(request, 'student_management/event.html', {
         'events': events,
@@ -195,15 +208,21 @@ class EventRequestCreateView(LoginRequiredMixin, CreateView):
 
 @login_required
 def booked_events(request):
-    booked = EventDetails.objects.filter(user_id=request.user.user_id)
+    booked = EventDetails.objects.filter(user_id=request.user.user_id, can_book=True)
     return render(request, "student_management/booked_event.html", {'booked': booked})
 
 @login_required
 def booked(request, event_id):
     event = get_object_or_404(Event, event_id=event_id)
     user = request.user
+    
+    current_bookings = EventDetails.objects.filter(event=event, can_book=True).count()
+    
+    if event.maximum_capacity is not None and current_bookings >= event.maximum_capacity:
+        messages.error(request, f"⚠️ Sorry, '{event.event_name}' is fully booked.")
+        return redirect('events')
 
-    if not EventDetails.objects.filter(event=event, user=user).exists():
+    if not EventDetails.objects.filter(event=event, user=user, can_book=True).exists():
         EventDetails.objects.create(event=event, user=user)
         create_notification(user, f"You booked the event '{event.event_name}'!", 'success')
         messages.success(request, f"✅ You have successfully booked '{event.event_name}'!")
@@ -218,9 +237,10 @@ def cancel_booking(request, event_id):
     event = get_object_or_404(Event, event_id=event_id)
     user = request.user
 
-    booking = EventDetails.objects.filter(event=event, user=user)
-    if booking.exists():
-        booking.delete()
+    booking = EventDetails.objects.filter(event=event, user=user, can_book=True).first()
+    if booking:
+        booking.can_book = False
+        booking.save()
         create_notification(user, f"You canceled booking for '{event.event_name}'.", 'info')
         messages.success(request, f"❌ You canceled your booking for '{event.event_name}'.")
     else:

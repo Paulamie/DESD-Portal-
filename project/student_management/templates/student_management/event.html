@@ -96,8 +96,25 @@
                         <p class="event-description">{{ event.info }}</p>
                     </div>
                 
+                    {% if event.maximum_capacity %}
+                    {% comment %} displays maximum capacity {% endcomment %}
+                        <p>Maximum Capacity: {{ event.maximum_capacity }}</p>
+
+                        {% comment %} any spots not available would show fully booked {% endcomment %}
+                        {% if event.spots_left > 0 %}
+                            <p style="color: black;">{{ event.spots_left }} spots left!</p>
+                        {% else %}
+                            <p style="color: black;">Fully Booked</p>
+                        {% endif %}
+                    {% else %}
+                        <p>Unlimited Capacity</p>
+                    {% endif %}
+                    
+                    
                     {% if event.event_id in booked_event_ids %}
-                        <button class="booked-button" disabled>✅ Already Booked</button>
+                        <button class="join-button" disabled>✅ Already Booked</button>
+                    {% elif event.is_full %}
+                        <button class="join-button" disabled>🚫 Fully Booked</button>
                     {% else %}
                         {% if event.location_type == "Online" %}
                             <a href="{% url 'booked' event.event_id %}" class="join-button">Join Now</a>

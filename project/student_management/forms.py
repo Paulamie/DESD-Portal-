@@ -56,20 +56,20 @@ class UpdateRequestForm(forms.ModelForm):
 class EventForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ['event_name', 'start_time', 'end_time', 'info', 'community', 'society', 'location_type', 'actual_location']
+        fields = ['event_name', 'start_time', 'end_time', 'info', 'community', 'society', 'location_type', 'actual_location','maximum_capacity']
 
     current_time = timezone.now()
 
     start_time = forms.DateTimeField(
-        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'step': 60}),
         validators=[MinValueValidator(current_time, message="Start Datetime cannot be in the past.")],
-        initial=current_time
+        initial=current_time.replace(second=0, microsecond=0)
     )
 
     end_time = forms.DateTimeField(
-        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'step': 60}),  # step 60 = no seconds
         validators=[MinValueValidator(current_time, message="End Datetime cannot be in the past.")],
-        initial=current_time
+        initial=current_time.replace(second=0, microsecond=0)
     )
 
     def clean(self):

@@ -145,7 +145,10 @@ class Event(models.Model):
     ]
     location_type = models.CharField(max_length=20, choices=LOCATION_CHOICES, default='On-Campus')
     actual_location = models.CharField(max_length=255, blank=True, null=True)
+    maximum_capacity = models.PositiveIntegerField(null=True, blank=True)
+    # required_material=models.CharField(max_length=50,null=True,blank=True)
 
+    
     class Meta:
         db_table = "Event"
 
