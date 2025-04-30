@@ -7,6 +7,7 @@ from django.core.files.base import ContentFile
 from .models import SocietyJoinRequest
 from .models import Notification
 import os
+from .models import Comment
 
 # Helper function for creating notifications in admin
 def create_notification(user, message, notification_type='info'):
@@ -224,4 +225,5 @@ class SocietyJoinRequestAdmin(admin.ModelAdmin):
     search_fields = ('user__first_name', 'user__last_name', 'society__society_name')
     actions = [approve_society_join_request, reject_society_join_request]
 
-
+#comment's section
+admin.site.register(Comment)

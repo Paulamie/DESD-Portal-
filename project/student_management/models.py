@@ -222,10 +222,34 @@ class Post(models.Model):
     likes = models.IntegerField(default=0)
     comments_count = models.IntegerField(default=0)
     content = models.TextField()
-    visibility = models.CharField(max_length=10, choices=[('private', 'Private'), ('public', 'Public')], default='public')
+    VISIBILITY_CHOICES = [
+        ('public', 'Public'),
+        ('friends', 'Friends'),
+        ('community', 'Community'),
+        ('club', 'Club'),
+        ('society', 'Society'),
+    ]
+
+    # ... other fields ...
+    visibility = models.CharField(
+        max_length=20,
+        choices=VISIBILITY_CHOICES,
+        default='public'
+    )
+   
 
     def __str__(self):
         return f"Post by {self.user.email} - {self.content[:30]}"
+    
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    comment_text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.full_name} on Post {self.post.post_id}"
+
 
 # === CommunityMembership ===
 class CommunityMembership(models.Model):

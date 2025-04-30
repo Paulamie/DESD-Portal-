@@ -18,7 +18,7 @@ class UpdateRequestSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-from rest_framework import serializers
+
 from .models import Post
 
 class PostSerializer(serializers.ModelSerializer):
@@ -30,6 +30,14 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_user_full_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
+    
+
+from .models import Comment
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['id', 'post', 'user', 'comment_text', 'created_at']
 
 
 

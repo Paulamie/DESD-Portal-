@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import AdminSocietyRequestsView
 from student_management import views as student_views
+from .views import CommentViewSet
 
 from . import views
 from .views import (
@@ -27,6 +28,7 @@ router.register(r'admin-events', EventAdminViewSet, basename='event-admin')
 router.register(r'search-events', EventSearchViewSet, basename='search-events')
 router.register(r'search-communities', CommunitySearchViewSet, basename='search-communities')
 router.register(r'search-posts', PostSearchViewSet, basename='search-posts')
+router.register(r'comments', CommentViewSet, basename='comments')
 
 urlpatterns = [
     path('', homepage, name='homepage'),
@@ -80,6 +82,11 @@ urlpatterns = [
     path('admin/reject-update-request/<int:request_id>/', views.reject_update_request, name='reject_update_request'),
     path('admin-update-requests/', student_views.admin_update_requests, name='admin_update_requests'),
     path('send-test-email/', send_test_email, name='send_test_email'),
+    
+    #comments 
+    path('', include(router.urls)),
+    path('add_comment/', views.add_comment, name='add_comment'),
+    path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
 
 ]
 

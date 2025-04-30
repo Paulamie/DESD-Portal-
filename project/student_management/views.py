@@ -53,6 +53,10 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
 
+
+from django.db.models import Q, Prefetch
+from .models import Post, Comment, CommunityMembership, Notification, UpdateRequest, User
+
 def create_notification(user, message, notification_type='info'):
     subject_prefix = {
         'success': '🎉 Success!',
@@ -152,33 +156,44 @@ def homepage(request):
 def home(request):
     if request.method == 'POST':
         content = request.POST.get('post_content')
+        visibility = request.POST.get('visibility', 'public')
         if content:
-            Post.objects.create(user=request.user, content=content)
-            create_notification(request.user, f"Your post has been successfully created!", 'success')
+            Post.objects.create(user=request.user, content=content, visibility=visibility)
+            create_notification(request.user, "Your post has been successfully created!", 'success')
             messages.success(request, "✅ Your post has been created successfully!")
             return redirect('home')
 
-
-    posts = Post.objects.select_related('user').order_by('-timestamp')
     latest_update = UpdateRequest.objects.filter(user=request.user).order_by('-created_at').first()
-    
-    # NEW: Fetch friends, joined communities, and joined societies
     friends = User.objects.exclude(user_id=request.user.user_id)
     joined_communities = CommunityMembership.objects.filter(user=request.user).select_related('community')
     joined_societies = request.user.joined_societies.all()
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
 
+    # Get IDs for filtering
+    joined_community_ids = [m.community_id for m in joined_communities]
+
+    visibility_filter = (
+        Q(user=request.user)|
+        Q(visibility='public') |
+        Q(visibility='friends', user__in=friends) |
+        Q(visibility='community', user__communitymembership__community_id__in=joined_community_ids) |
+        Q(visibility='club', user__joined_societies__in=joined_societies)
+    )
+
+    posts = Post.objects.select_related('user').prefetch_related(
+        Prefetch('comment_set', queryset=Comment.objects.select_related('user'))
+    ).filter(visibility_filter).distinct().order_by('-timestamp')
 
     return render(request, 'student_management/home.html', {
         'posts': posts,
         'latest_update': latest_update,
         'friends': friends,
-        'joined_communities': [membership.community for membership in joined_communities],
+        'joined_communities': [m.community for m in joined_communities],
         'joined_societies': joined_societies,
-        'notifications': notifications, 
+        'notifications': notifications,
     })
-
-
+    
+    
 # Authentication Views
 
 def register(request):
@@ -779,3 +794,67 @@ class AdminSocietyRequestsView(View):
 def admin_update_requests(request):
     updates = UpdateRequest.objects.all().order_by('-created_at')
     return render(request, 'student_management/admin_update_requests.html', {'updates': updates})
+
+
+from rest_framework import viewsets
+from .models import Comment
+from .serializers import CommentSerializer
+from rest_framework import filters
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['post__post_id']
+    
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from .models import Comment, Post
+
+@require_POST
+@login_required
+def add_comment(request):
+    post_id = request.POST.get('post_id')
+    comment_text = request.POST.get('comment_text')
+
+    if post_id and comment_text:
+        post = get_object_or_404(Post, pk=post_id)
+        Comment.objects.create(
+            post=post,
+            user=request.user,
+            comment_text=comment_text
+        )
+
+    return redirect('home') 
+
+from rest_framework import permissions, viewsets
+from .models import Comment
+from .serializers import CommentSerializer
+
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Allow read-only for GET, HEAD, OPTIONS
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        # Allow write/delete only if user is the comment owner
+        return obj.user == request.user
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+    
+from django.contrib import messages
+from django.http import HttpResponseForbidden
+from django.shortcuts import redirect
+
+@login_required
+@require_POST
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, pk=comment_id)
+    if comment.user != request.user:
+        return HttpResponseForbidden("You can't delete someone else's comment.")
+    comment.delete()
+    messages.success(request, "Your comment was deleted.")
+    return redirect('home')
