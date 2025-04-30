@@ -79,6 +79,7 @@ urlpatterns = [
 
     path('admin/reject-update-request/<int:request_id>/', views.reject_update_request, name='reject_update_request'),
     path('admin-update-requests/', student_views.admin_update_requests, name='admin_update_requests'),
+    path('send-test-email/', send_test_email, name='send_test_email'),
 
 ]
 

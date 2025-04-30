@@ -1,22 +1,38 @@
 {% extends 'student_management/base.html' %}
+{% load static %}
 
 {% block title %}Login{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
 {% block content %}
-    <h2>Login</h2>
-    {% if error %}
-        <p style="color:red">{{ error }}</p>
-    {% endif %}
-    <form method="POST" class="login-form">
-        {% csrf_token %}
-        <label>Email:</label>
-        <input type="email" name="email" required>
-    
-        <label>Password:</label>
-        <input type="password" name="password" required>
-    
-        <button type="submit" class="btn">Login</button>
-    </form>
-    
-    <p>Don't have an account? <a href="{% url 'register' %}">Sign up here</a></p>
+<div class="login-container">
+    <div class="welcome-section">
+        <h1>Welcome Back!</h1>
+        <p>Log in to access events, communities, and more.</p>
+    </div>
+
+    <div class="login-form-section">
+        <form method="POST" class="login-form">
+            {% csrf_token %}
+            <h2>Login</h2>
+
+            <label for="email">Email</label>
+            <input type="text" name="email" id="email" required>
+
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" required>
+
+            <button type="submit" class="btn">Log In</button>
+
+            {% if form.errors %}
+                <div class="alert alert-error">
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
 {% endblock %}

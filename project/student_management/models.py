@@ -128,11 +128,18 @@ class SocietyJoinRequest(models.Model):
     
 
     
-# === Event (clean version) ===
+# === Event ===
 class Event(models.Model):
     is_approved = models.BooleanField(default=False)
     event_id = models.AutoField(primary_key=True)
     event_name = models.CharField(max_length=100)
+    requester = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='event_requests'
+    )
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     info = models.TextField()
@@ -143,12 +150,17 @@ class Event(models.Model):
         ('Online', 'Online'),
         ('On-Campus', 'On-Campus'),
     ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     location_type = models.CharField(max_length=20, choices=LOCATION_CHOICES, default='On-Campus')
     actual_location = models.CharField(max_length=255, blank=True, null=True)
     maximum_capacity = models.PositiveIntegerField(null=True, blank=True)
-    # required_material=models.CharField(max_length=50,null=True,blank=True)
 
-    
     class Meta:
         db_table = "Event"
 

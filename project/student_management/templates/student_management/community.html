@@ -26,7 +26,7 @@
             <li><a href="{% url 'events' %}">Events</a></li>
             <li><a href="{% url 'societies' %}">Societies</a></li>
             <li><a href="{% url 'community' %}">Communities</a></li>
-            <li><a href="{% url 'friends' %}">Friends</a></li>
+            <li><a href="{% url 'friends' %}" class="active-link">Friends</a></li>
             <li><a href="{% url 'search_posts' %}">Posts</a></li>
 
             {% if user.is_authenticated %}
@@ -70,7 +70,7 @@
                                 {% else %}
                                     <form method="post" action="{% url 'join_community' community.community_id %}">
                                         {% csrf_token %}
-                                        <button type="submit" style="margin-top: 10px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px;">
+                                        <button type="submit" style="margin-top: 10px; padding: 5px 10px; background-color: #426596; color: white; border: none; border-radius: 5px;">
                                             Join Community
                                         </button>
                                     </form>

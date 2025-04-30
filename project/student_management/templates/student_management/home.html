@@ -3,6 +3,7 @@
 <html>
 <head>
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>Home</title>
     <style>
@@ -15,77 +16,88 @@
             gap: 20px;
             margin-top: 20px;
         }
-
+    
         .profile { grid-area: profile; }
         .friends-communities { grid-area: connects; }
         .notifications { grid-area: notifications; }
         .latest-posts { grid-area: posts; }
-
+    
         .profile, .make-post, .notifications, .friends-communities {
-            background-color: #B3E5FC;
-            border-radius: 8px;
+            background-color: #f5faff;
+            border-radius: 10px;
             padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
-
+    
         .notifications {
             max-width: 300px;
             font-size: 14px;
         }
-
+    
         .notifications ul li {
-            background-color: #e1f5fe;
+            background-color: #e7f4fb;
             margin-bottom: 8px;
             padding: 10px;
-            border-radius: 5px;
+            border-left: 5px solid #00aaff;
+            border-radius: 6px;
         }
-
+    
         .friends-communities div {
-            background-color: #e1f5fe;
-            margin-bottom: 10px;
+            background-color: #e7f4fb;
+            margin-bottom: 12px;
             padding: 15px;
-            border-radius: 8px;
-            text-align: left;
-            color: #333;
+            border-radius: 10px;
             font-size: 15px;
+            color: #333;
         }
-
+    
         .friends-communities ul {
             list-style-type: none;
             padding-left: 0;
             margin-top: 8px;
         }
-
+    
         .friends-communities li {
-            background-color: white;
+            background-color: #fff;
             margin-bottom: 5px;
             padding: 6px 10px;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-
+    
         .profile img {
             width: 100px;
             height: 100px;
-            border-radius: 5px;
+            border-radius: 8px;
+            object-fit: cover;
         }
-
+    
         textarea {
-            width: 95%;
+            width: 100%;
             resize: none;
-            border-radius: 5px;
+            border-radius: 6px;
             padding: 10px;
+            border: 1px solid #ccc;
             margin-bottom: 10px;
+            font-size: 14px;
         }
-
+    
         .btn-post {
-            background-color: red;
+            background-color: #007acc;
             color: white;
-            padding: 8px 12px;
-            border-radius: 5px;
+            padding: 8px 14px;
+            border-radius: 6px;
             border: none;
             cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
         }
-
+    
+        .btn-post:hover {
+            background-color: #005fa3;
+        }
+    
         .latest-posts {
             display: flex;
             flex-wrap: wrap;
@@ -93,11 +105,11 @@
             gap: 20px;
             margin-top: 20px;
         }
-
+    
         .post-example {
-            background-color: #4cd5f5;
+            background-color: #d9f4ff;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 10px;
             font-size: 16px;
             color: #000;
             flex: 1 1 30%;
@@ -105,85 +117,75 @@
             max-width: 32%;
             box-sizing: border-box;
         }
-
-
+    
         .post-user {
-            font-weight: normal; 
-            margin-bottom: 8px;
+            font-weight: bold;
+            margin-bottom: 6px;
         }
-
+    
         .post-content {
-            background-color: #e0e0e0;
+            background-color: #f0f0f0;
             padding: 10px;
-            border-radius: 4px;
+            border-radius: 6px;
             margin-bottom: 8px;
-            text-align: left;
             word-wrap: break-word;
-            overflow-wrap: break-word;
         }
-
+    
         .post-date {
             font-size: 12px;
             text-align: right;
-            color: #333;
+            color: #555;
         }
-
+    
         .post-section {
-            grid-column: 1 / -1; /* Stretch full width */
+            grid-column: 1 / -1;
             margin-top: 40px;
         }
-
+    
         .post-title {
             margin-bottom: 20px;
             font-size: 24px;
             font-weight: bold;
-            color: #000;
+            color: #003366;
         }
-
-
-        .messages {
-            margin-top: 10px;
-        }
-
-        /* --- Flash Messages Styling --- */
+    
         .messages {
             margin: 20px;
             padding: 10px;
         }
-
+    
         .alert {
             padding: 10px 20px;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             margin-bottom: 10px;
         }
-
+    
         .alert-success {
             background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-
+    
         .alert-info {
             background-color: #d1ecf1;
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
-
+    
         .alert-warning {
             background-color: #fff3cd;
             color: #856404;
             border: 1px solid #ffeeba;
         }
-
+    
         .alert-error, .alert-danger {
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-
-
     </style>
+    
 </head>
 <header>
 <nav class="navbar">
@@ -194,7 +196,7 @@
         <li><a href="{% url 'events' %}">Events</a></li>
         <li><a href="{% url 'societies' %}">Societies</a></li>
         <li><a href="{% url 'community' %}">Communities</a></li>
-        <li><a href="{% url 'friends' %}">Friends</a></li>
+        <li><a href="{% url 'friends' %}" class="active-link">Friends</a></li>
         <li><a href="{% url 'search_posts' %}">Posts</a></li>
         {% if user.is_authenticated %}
             <li><a href="{% url 'logout' %}">Logout</a></li>

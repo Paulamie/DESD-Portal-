@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Societies</title>
-    <link rel="stylesheet" href="{% static 'css/societies.css' %}">
+    <link rel="stylesheet" href="{% static 'css/societies2.css' %}">
     <script>
         function confirmJoin() {
             return confirm("Are you sure you want to join this society?");
@@ -27,7 +27,7 @@
 </head>
 <body>
 
-<header>
+<header class="accessible-header">
     <nav class="navbar">
         <a href="{% url 'home' %}" class="logo-link">
             <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="Site Banner">
@@ -50,17 +50,17 @@
 {% if messages %}
 <div class="messages">
     {% for message in messages %}
-        <div class="message {{ message.tags }}">{{ message }}</div>
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
     {% endfor %}
 </div>
 {% endif %}
 
-<!-- Tag Filter -->
+<!-- ✅ Tag Filter with sort preservation -->
 <div class="tag-filter">
     <p>Filter by tag:</p>
     <div class="tag-list">
         {% for tag in all_tags %}
-            <a class="tag-link" href="?tag={{ tag.name }}">{{ tag.name }}</a>
+            <a class="tag-link" href="?{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}tag={{ tag.name }}">{{ tag.name }}</a>
         {% empty %}
             <p>No tags available.</p>
         {% endfor %}
@@ -73,7 +73,6 @@
         <p>Explore and join societies that interest you.</p>
     </div>
 
-    <!-- Top Society + Upcoming Events -->
     <div class="dropdown-row">
         {% if featured_society %}
             <details class="dropdown-card" open>
@@ -98,7 +97,6 @@
     </div>
 
     <div class="societies-wrapper">
-        <!-- Joined Societies -->
         <div class="column-left">
             <h2>Your Societies</h2>
             {% if joined_societies %}
@@ -138,12 +136,12 @@
             {% endif %}
         </div>
 
-        <!-- Discover Societies -->
         <div class="column-right">
             <h2>Discover New Societies</h2>
 
-            <!-- Sort Dropdown -->
+            <!-- ✅ Sort dropdown with tag preservation -->
             <form method="get" class="sort-form">
+                <input type="hidden" name="tag" value="{{ request.GET.tag }}">
                 <label for="sort">Sort by:</label>
                 <select name="sort" id="sort" onchange="this.form.submit()">
                     <option value="">Select</option>
@@ -191,17 +189,17 @@
                         </div>
                         <div class="card-actions">
                             <span class="read-more-toggle">Read more</span>
-
                             {% if society.society_id in join_status_map %}
-                                {% if join_status_map.society_id == "pending" %}
-                                    <span class="badge pending">Pending Approval</span>
-                                {% elif join_status_map.society_id == "rejected" %}
-                                    <span class="badge rejected">Rejected</span>
-                                {% endif %}
-                                
-                                <button class="join-button" disabled>
-                                    Request {{ join_status_map.society_id|default:"Pending"|capfirst }}
-                                </button>
+                                {% with join_status=join_status_map.society_id %}
+                                    {% if join_status == "pending" %}
+                                        <span class="badge pending">Pending Approval</span>
+                                    {% elif join_status == "rejected" %}
+                                        <span class="badge rejected">Rejected</span>
+                                    {% endif %}
+                                    <button class="join-button" disabled>
+                                        Request {{ join_status|default:"Pending"|capfirst }}
+                                    </button>
+                                {% endwith %}
                             {% else %}
                                 <form method="post" action="{% url 'join_society' society.society_id %}" onsubmit="return confirmJoin()">
                                     {% csrf_token %}
@@ -209,7 +207,6 @@
                                     <button type="submit" class="join-button">Join Society</button>
                                 </form>
                             {% endif %}
-                        
                         </div>
                     </div>
                 {% endfor %}

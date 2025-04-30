@@ -19,7 +19,7 @@
             <li><a href="{% url 'events' %}" class="{% if request.path == '/events/' %}active-link{% endif %}">Events</a></li>
             <li><a href="{% url 'societies' %}">Societies</a></li>
             <li><a href="{% url 'community' %}">Communities</a></li>
-            <li><a href="{% url 'friends' %}">Friends</a></li>
+            <li><a href="{% url 'friends' %}" class="active-link">Friends</a></li>
             <li><a href="{% url 'search_posts' %}">Posts</a></li>
 
             {% if user.is_authenticated %}

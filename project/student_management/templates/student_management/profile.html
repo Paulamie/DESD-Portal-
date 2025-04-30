@@ -51,7 +51,6 @@
     <div class="profile-container">
         <h2>My Profile</h2>
 
-        <!-- ✅ FIXED PROFILE PICTURE DISPLAY -->
         {% if user.profile_picture %}
             <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
         {% else %}

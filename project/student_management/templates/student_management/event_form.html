@@ -5,86 +5,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Request Form</title>
-    <link rel="stylesheet" href="{% static 'css/comm.css' %}">
-
-    <style>
-        select {
-            background-color: white;
-            color: black;
-            padding: 8px;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        option {
-            color: black;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 10px;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-
-        .submit {
-            background-color: red;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .submit:hover {
-            background-color: darkred;
-        }
-
-        select[multiple] {
-            width: 100%;
-            min-height: 120px;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/event_form.css' %}">
 </head>
 <body>
 
-<div class="outer-container">
-    <div class="main-container">
+<header class="accessible-header">
+    <nav class="navbar">
+        <a href="{% url 'home' %}" class="logo-link">
+            <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="Site Banner" width="150" height="65">
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'events' %}">Events</a></li>
+            <li><a href="{% url 'societies' %}">Societies</a></li>
+            <li><a href="{% url 'community' %}">Communities</a></li>
+            <li><a href="{% url 'friends' %}">Friends</a></li>
+            <li><a href="{% url 'search_posts' %}">Posts</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</header>
+
+<main class="outer-container">
+    <div class="main-content">
         <h2>Request to Organize an Event</h2>
 
-        <form method="post" onsubmit="return showSuccessMessage()">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="alert alert-success">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post" novalidate>
             {% csrf_token %}
-            
+
             <label for="id_event_name">Event Name:</label>
             {{ form.event_name }}
 
             <label for="id_start_time">Start DateTime:</label>
             {{ form.start_time }}
             {% for error in form.start_time.errors %}
-            {% comment %} make this red {% endcomment %}
-                <div class="error" style="color:red">{{ error }}</div>
+                <div class="alert alert-danger">{{ error }}</div>
             {% endfor %}
 
             <label for="id_end_time">End DateTime:</label>
             {{ form.end_time }}
             {% for error in form.end_time.errors %}
-                <div class="error" style="color:red">{{ error }}</div>
+                <div class="alert alert-danger">{{ error }}</div>
             {% endfor %}
-            
+
             <label for="id_info">Event Info:</label>
             {{ form.info }}
-            
+
             <label for="id_community">Community:</label>
             {{ form.community }}
 
@@ -94,36 +71,16 @@
             <label for="id_location_type">Location Type:</label>
             {{ form.location_type }}
 
-            <label for="id_actual_location">Actual Location / online link (if any):</label>
+            <label for="id_actual_location">Actual Location / Online Link:</label>
             {{ form.actual_location }}
 
-            <label for="id_maximum_capacity">Maximum Capacity</label>
-            {{form.maximum_capacity}}
-            
+            <label for="id_maximum_capacity">Maximum Capacity:</label>
+            {{ form.maximum_capacity }}
+
             <button type="submit" class="submit">Submit Request</button>
         </form>
-        
     </div>
-</div>
-
-<script>
-    {% comment %} fix it the message to come up right  {% endcomment %}
-    function showSuccessMessage() {
-        const form = document.querySelector('form');
-        if (!form.checkValidity()){
-            alert("Double check form")
-            return false;
-        }
-        else{
-            alert("✅ Your community request has been submitted!");
-            return true;
-            form.submit();
-        }
-    
-    }
-</script>
-
-{% comment %} Fix the message  {% endcomment %}
+</main>
 
 </body>
 </html>

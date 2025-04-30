@@ -72,10 +72,38 @@ class CommunityAdmin(admin.ModelAdmin):
     search_fields = ('community_name',)
 
 # Event Admin Configuration
+
+def approve_event_request(modeladmin, request, queryset):
+    for event in queryset:
+        event.is_approved = True
+        event.save()
+
+        if hasattr(event, 'requester') and event.requester:
+            create_notification(event.requester, f"Your event '{event.event_name}' has been approved!", 'success')
+
+    modeladmin.message_user(request, "✅ Selected events approved.", messages.SUCCESS)
+
+def reject_event_request(modeladmin, request, queryset):
+    for event in queryset:
+        event.is_approved = False
+        event.save()
+
+        if hasattr(event, 'requester') and event.requester:
+            create_notification(event.requester, f"Your event '{event.event_name}' has been rejected.", 'error')
+
+    modeladmin.message_user(request, "❌ Selected events rejected.", messages.ERROR)
+
+approve_event_request.short_description = "Approve selected events"
+reject_event_request.short_description = "Reject selected events"
+
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'start_time', 'end_time', 'location_type', 'is_approved')
     search_fields = ('event_name',)
+    actions = [approve_event_request, reject_event_request]
+
+
+
 
 # Society Admin Configuration
 @admin.register(Society)
@@ -195,3 +223,5 @@ class SocietyJoinRequestAdmin(admin.ModelAdmin):
     list_filter = ('status', 'society')
     search_fields = ('user__first_name', 'user__last_name', 'society__society_name')
     actions = [approve_society_join_request, reject_society_join_request]
+
+
