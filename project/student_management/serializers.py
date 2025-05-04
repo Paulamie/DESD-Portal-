@@ -15,7 +15,19 @@ class EventSerializer(serializers.ModelSerializer):
 class UpdateRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = UpdateRequest
-        fields = '__all__'
+        fields = [
+            'id',
+            'user',
+            'reviewed_by',
+            'field_to_update',
+            'old_value',
+            'new_value',
+            'status',
+            'created_at',
+            'reviewed_at',
+            'profile_picture'
+        ]
+
 
 
 

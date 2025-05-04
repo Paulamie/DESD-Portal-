@@ -26,22 +26,51 @@ class UserManager(BaseUserManager):
 
 # === Custom User Model ===
 class User(AbstractBaseUser, PermissionsMixin):
+    GENDER_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+    ]
+
     user_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
+
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
+
     full_name = models.CharField(max_length=255, blank=True)
     course = models.CharField(max_length=255, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
+    bio = models.TextField(blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
+    facebook = models.URLField(blank=True, null=True)
+    twitter = models.URLField(blank=True, null=True)
+    instagram = models.URLField(blank=True, null=True)
+
+    # Friends system
+    friends = models.ManyToManyField("self", symmetrical=True, blank=True)
+
+    # Interests (used for friend/society matching)
+    interests = models.ManyToManyField('Interest', blank=True)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
-    groups = models.ManyToManyField("auth.Group", related_name="student_management_users", blank=True)
-    user_permissions = models.ManyToManyField("auth.Permission", related_name="student_management_users_permissions", blank=True)
+    groups = models.ManyToManyField(
+        "auth.Group",
+        related_name="student_management_users",
+        blank=True
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        related_name="student_management_users_permissions",
+        blank=True
+    )
 
     objects = UserManager()
 
@@ -52,11 +81,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
     def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name}".strip()
+
 
     @property
     def id(self):
         return self.user_id
+
 
 # === Community ===
 class Community(models.Model):
@@ -283,3 +314,33 @@ class Notification(models.Model):
 
     def __str__(self):
         return f'Notification for {self.user.get_full_name()}: {self.message[:30]}'
+
+class FriendRequest(models.Model):
+    from_user = models.ForeignKey(User, related_name='sent_requests', on_delete=models.CASCADE, to_field='user_id')
+    to_user = models.ForeignKey(User, related_name='received_requests', on_delete=models.CASCADE, to_field='user_id')
+    status = models.CharField(max_length=10, choices=[
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ], default='pending')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "FriendRequest"
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.from_user.get_full_name()} ➤ {self.to_user.get_full_name()} ({self.status})"
+
+class Friendship(models.Model):
+    user = models.ForeignKey(User, related_name='friendships', on_delete=models.CASCADE, to_field='user_id')
+    friend = models.ForeignKey(User, related_name='friends_with', on_delete=models.CASCADE, to_field='user_id')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+
+    class Meta:
+        db_table = "Friendship"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} ♥ {self.friend.get_full_name()}"

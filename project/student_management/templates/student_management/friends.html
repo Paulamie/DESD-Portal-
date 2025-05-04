@@ -1,64 +1,172 @@
 {% load static %}
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Friends</title>
-    <link rel="stylesheet" href="{% static 'css/friends2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    
 </head>
 <body>
 
 {% if messages %}
 <div class="messages">
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
 </div>
 {% endif %}
 
 <header class="accessible-header">
-    <nav class="navbar">
-        <a href="{% url 'home' %}" class="logo-link">
-            <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="Site Banner" width="100%">
-        </a>
-        <ul class="nav-links">
-            <li><a href="{% url 'events' %}">Events</a></li>
-            <li><a href="{% url 'societies' %}">Societies</a></li>
-            <li><a href="{% url 'community' %}">Communities</a></li>
-            <li><a href="{% url 'friends' %}" class="active-link">Friends</a></li>
-            <li><a href="{% url 'search_posts' %}">Posts</a></li>
-            <li><a href="{% url 'logout' %}">Logout</a></li>
-        </ul>
-    </nav>
+  <nav class="navbar">
+    <a href="{% url 'home' %}" class="logo-link">
+      <img src="{% static 'images/UWE_Bristol_logo1.png' %}" alt="Site Banner">
+    </a>
+    <ul class="nav-links">
+      <li><a href="{% url 'events' %}" class="{% if request.path == '/events/' %}active-link{% endif %}">Events</a></li>
+      <li><a href="{% url 'societies' %}">Societies</a></li>
+      <li><a href="{% url 'community' %}">Communities</a></li>
+      <li><a href="{% url 'friends' %}">Friends</a></li>
+      <li><a href="{% url 'search_posts' %}">Posts</a></li>
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}">Login</a></li>
+      {% endif %}
+    </ul>
+  </nav>
 </header>
 
-<div class="container">
-    <h1>Friends</h1>
-    <p>Connect with your friends and see who's in UniHub!</p>
+<div class="main-container">
 
+  <!-- FRIENDS SECTION -->
+  <div class="profile">
+    <h3>🧑‍🤝‍🧑 Friends</h3>
     {% if friends %}
-        {% for friend in friends %}
-        <div class="friend-card">
-            {% if friend.profile_picture %}
-                <img src="{{ friend.profile_picture.url }}" alt="{{ friend.full_name }}">
+      <form method="get" class="mb-3">
+        <input type="text" name="search" class="form-control mb-2" placeholder="Search friends..." value="{{ search }}">
+        <select name="sort" class="form-select mb-2">
+          <option value="">Sort by</option>
+          <option value="name" {% if sort == "name" %}selected{% endif %}>Name (A-Z)</option>
+          <option value="recent" {% if sort == "recent" %}selected{% endif %}>Most Recent</option>
+        </select>
+        <button type="submit" class="btn-post">Apply</button>
+      </form>
+
+      {% for f in friends %}
+        <div class="post-example d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center">
+            {% if f.friend.profile_picture %}
+              <img src="{{ f.friend.profile_picture.url }}" alt="Friend Picture"
+                   class="rounded"
+                   style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #003366;">
             {% else %}
-                <img src="{% static 'images/profile_placeholder.png' %}" alt="{{ friend.full_name }}">
+              <img src="{% static 'images/profile_placeholder.png' %}" alt="Default Picture"
+                   class="rounded"
+                   style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #003366;">
             {% endif %}
-
-            <div class="friend-info">
-                <h3>{{ friend.full_name }}</h3>
-                <p>{{ friend.email }}</p>
+            <div class="ms-3">
+              <h5 class="mb-1">{{ f.friend.get_full_name }}</h5>
+              <p class="mb-0">{{ f.friend.email }}</p>
             </div>
+          </div>
+          <form method="post" action="{% url 'remove_friend' f.friend.id %}">
+            {% csrf_token %}
+            <button class="btn btn-danger">Unfriend</button>
 
-            <div class="friend-actions">
-                <button class="action-button">View Profile</button>
-                <button class="action-button">Send Message</button>
-            </div>
+          </form>
         </div>
-        {% endfor %}
+      {% endfor %}
     {% else %}
-        <p>You have no friends yet.</p>
+      <p class="text-muted">You have no friends yet 😢</p>
     {% endif %}
+  </div>
+
+  <!-- REQUESTS SECTION -->
+  <div class="friends-communities">
+    <h3>✨ Friend Requests</h3>
+    {% if received_requests %}
+      {% for r in received_requests %}
+        <div class="post-example d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center">
+            {% if r.from_user.profile_picture %}
+              <img src="{{ r.from_user.profile_picture.url }}" alt="Request Picture"
+                   class="rounded"
+                   style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #007acc;">
+            {% else %}
+              <img src="{% static 'images/profile_placeholder.png' %}" alt="Default Picture"
+                   class="rounded"
+                   style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #007acc;">
+            {% endif %}
+            <div class="ms-3">
+              <h5 class="mb-1">{{ r.from_user.get_full_name }}</h5>
+            </div>
+          </div>
+          <div>
+            <form method="post" action="{% url 'accept_friend_request' r.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button class="btn btn-success me-2">Accept</button>
+
+
+            </form>
+            <form method="post" action="{% url 'reject_friend_request' r.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button class="btn btn-outline-danger">Reject</button>
+
+              
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">No new requests 🙇‍♀️</p>
+    {% endif %}
+  </div>
+
+  <!-- SUGGESTIONS SECTION -->
+  <div class="notifications">
+    <h3>🔍 Suggested Friends</h3>
+    {% if suggestions %}
+      {% for s in suggestions %}
+        <div class="post-example d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center">
+            {% if s.profile_picture %}
+              <img src="{{ s.profile_picture.url }}" alt="Suggested Picture"
+                   class="rounded"
+                   style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #00aaff;">
+            {% else %}
+              <img src="{% static 'images/profile_placeholder.png' %}" alt="Default Picture"
+                   class="rounded"
+                   style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #00aaff;">
+            {% endif %}
+            <div class="ms-3">
+              <h5 class="mb-1">{{ s.get_full_name }}</h5>
+              <p class="mb-0">{{ s.email }}</p>
+              {% if s.id in mutual_friends %}
+                <small class="text-muted">{{ mutual_friends|get_item:s.id|length }} mutual friends</small>
+              {% endif %}
+            </div>
+          </div>
+
+          {% if s.id in sent_to_ids %}
+            <button class="btn-post" disabled>Requested</button>
+          {% else %}
+            <form method="post" action="{% url 'send_friend_request' s.id %}">
+              {% csrf_token %}
+              <button class="btn btn-post">Add Friend</button>
+
+            </form>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">No suggestions right now 🤔</p>
+    {% endif %}
+  </div>
+
 </div>
 
 </body>

@@ -16,7 +16,7 @@ body {
     line-height: 1.6;
 }
 
-/* Header and Navbar */
+
 header {
     background-color: #003366;
     padding: 10px 20px;
@@ -27,10 +27,6 @@ header {
     align-items: center;
     justify-content: flex-start;
     min-height: 60px;
-    position: relative;
-    color: #ffffff;
-    padding: 1rem;
-    border-radius: 0 0 15px 15px;
 }
 
 .navbar img {
@@ -55,9 +51,8 @@ header {
     color: #ffffff;
     text-decoration: none;
     font-size: 16px;
-    padding: 0.5rem 1rem;
+    padding: 10px 16px;
     letter-spacing: 0.15em;
-    position: relative;
 }
 
 .nav-links a:hover,
@@ -65,6 +60,7 @@ header {
     background-color: #0055A5;
     border-radius: 8px;
 }
+
 
 /* Search Icon */
 .search-container {
@@ -241,3 +237,113 @@ textarea:focus {
     outline: 3px solid #FFD700;
     outline-offset: 2px;
 }
+
+button,
+.btn-post,
+.btn-danger,
+.btn-success,
+.btn-outline-danger {
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.btn-danger:hover {
+    background-color: #b02a00;
+}
+
+.btn-outline-danger:hover {
+    background-color: #cc3300;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn-post {
+    background-color: #007acc;
+    color: white;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  
+  .btn-danger {
+    background-color: #cc3300;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .btn-outline-danger {
+    background-color: transparent;
+    color: #cc3300;
+    border: 2px solid #cc3300;
+    border-radius: 12px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .btn-success {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+button + button {
+    margin-left: 10px;
+}
+
+.btn {
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-danger {
+    background-color: #cc3300;
+    color: white;
+    border: none;
+  }
+  
+  .btn-outline-danger {
+    background-color: transparent;
+    color: #cc3300;
+    border: 2px solid #cc3300;
+  }
+  
+  .btn-success {
+    background-color: #28a745;
+    color: white;
+    border: none;
+  }
+
+  .btn {
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+  }
+  

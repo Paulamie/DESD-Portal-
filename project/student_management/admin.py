@@ -103,9 +103,6 @@ class EventAdmin(admin.ModelAdmin):
     search_fields = ('event_name',)
     actions = [approve_event_request, reject_event_request]
 
-
-
-
 # Society Admin Configuration
 @admin.register(Society)
 class SocietyAdmin(admin.ModelAdmin):
@@ -127,32 +124,55 @@ def approve_update_request(modeladmin, request, queryset):
         user = obj.user
         field = obj.field_to_update.lower()
 
-        if field == 'name':
-            full_name = obj.new_value.strip().split(' ', 1)
-            user.first_name = full_name[0]
-            user.last_name = full_name[1] if len(full_name) > 1 else ''
-        elif field == 'course':
-            user.course = obj.new_value
-        elif field == 'profile_picture' and obj.profile_picture:
-            filename = os.path.basename(obj.profile_picture.name)
-            try:
-                obj.profile_picture.open() 
+        try:
+            if field == 'name':
+                parts = obj.new_value.strip().split(' ', 1)
+                user.first_name = parts[0]
+                user.last_name = parts[1] if len(parts) > 1 else ''
+            elif field == 'course':
+                user.course = obj.new_value
+            elif field == 'bio':
+                user.bio = obj.new_value
+            elif field == 'date_of_birth':
+                from datetime import datetime
+                try:
+                    user.date_of_birth = datetime.strptime(obj.new_value, "%Y-%m-%d").date()
+                except ValueError:
+                    messages.error(request, f"Invalid date format for {user.email}. Use YYYY-MM-DD.")
+                    continue
+            elif field == 'gender':
+                user.gender = obj.new_value
+            elif field == 'facebook':
+                user.facebook = obj.new_value
+            elif field == 'twitter':
+                user.twitter = obj.new_value
+            elif field == 'instagram':
+                user.instagram = obj.new_value
+            elif field == 'profile_picture' and obj.profile_picture:
+                filename = os.path.basename(obj.profile_picture.name)
+                obj.profile_picture.open()
                 user.profile_picture.save(
                     filename,
                     ContentFile(obj.profile_picture.read()),
                     save=True
                 )
-            except Exception as e:
-                print(f"❌ Error saving profile picture: {e}")
-        user.save()
-        obj.save()
+            else:
+                continue  # skip unknown fields
 
+            user.save()
+            obj.save()
 
-        create_notification(obj.user, f"Your profile update request for '{obj.field_to_update}' has been approved!", 'success')
+            create_notification(
+                user,
+                f"Your profile update request for '{obj.field_to_update}' has been approved!",
+                'success'
+            )
 
-
+        except Exception as e:
+            messages.error(request, f"❌ Failed to apply update for {user.email}: {str(e)}")
 
     modeladmin.message_user(request, "✅ Selected profile updates were approved.", messages.SUCCESS)
+
 
 
 

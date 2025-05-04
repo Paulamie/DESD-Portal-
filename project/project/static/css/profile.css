@@ -1,0 +1,75 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+body {
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 16px;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+/* Profile Container */
+.profile-container {
+    background-color: #f9f9f9;
+    padding: 30px;
+    border-radius: 12px;
+    width: 420px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.profile-container h2 {
+    font-size: 26px;
+    color: #003366;
+    margin-bottom: 20px;
+}
+
+/* Profile Picture */
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border: 3px solid #0055A5;
+}
+
+/* Profile Details */
+.profile-detail {
+    font-size: 16px;
+    margin: 10px 0;
+    color: #00363a;
+    word-wrap: break-word;
+}
+
+/* Button */
+.button {
+    display: inline-block;
+    margin-top: 25px;
+    background-color: #aa64b8;
+    color: white;
+    padding: 10px 22px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #003366;
+}
+
+/* Accessibility Focus */
+a:focus, button:focus {
+    outline: 3px solid #FFD700;
+    outline-offset: 2px;
+}

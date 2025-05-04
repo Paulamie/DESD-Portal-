@@ -35,10 +35,17 @@ class CommunityForm(forms.ModelForm):
 
 
 # === Update Request Form ===
+
 class UpdateRequestForm(forms.ModelForm):
     FIELD_CHOICES = [
-        ('name', 'Name'),
+        ('name', 'Full Name'),
         ('course', 'Course'),
+        ('bio', 'Bio'),
+        ('date_of_birth', 'Date of Birth'),
+        ('gender', 'Gender'),
+        ('facebook', 'Facebook'),
+        ('twitter', 'Twitter'),
+        ('instagram', 'Instagram'),
         ('profile_picture', 'Profile Picture'),
     ]
 
@@ -50,6 +57,27 @@ class UpdateRequestForm(forms.ModelForm):
     class Meta:
         model = UpdateRequest
         fields = ['field_to_update', 'old_value', 'new_value', 'profile_picture']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        field = cleaned_data.get("field_to_update")
+
+        if field == "profile_picture":
+            if not cleaned_data.get("profile_picture"):
+                self.add_error("profile_picture", "Please upload a new profile picture.")
+        elif field == "date_of_birth":
+            date_value = self.data.get("date_value")
+            if not date_value:
+                self.add_error("new_value", "Please enter a new date of birth.")
+            else:
+                cleaned_data["new_value"] = date_value  # <-- Save date_value into new_value
+        else:
+            if not cleaned_data.get("new_value"):
+                self.add_error("new_value", "This field is required.")
+        
+        return cleaned_data
+
+
 
 
 # === Event Form with Validations ===
@@ -89,3 +117,16 @@ class JoinSocietyForm(forms.Form):
         required=True
     )
 
+# === Profile Update Form (for editing user details directly) ===
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = [
+            'first_name', 'last_name', 'bio', 'date_of_birth', 'gender',
+            'profile_picture', 'facebook', 'twitter', 'instagram'
+        ]
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+            'bio': forms.Textarea(attrs={'rows': 3}),
+            'gender': forms.Select(),
+        }
