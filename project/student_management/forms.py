@@ -84,7 +84,7 @@ class UpdateRequestForm(forms.ModelForm):
 class EventForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ['event_name', 'start_time', 'end_time', 'info', 'community', 'society', 'location_type', 'actual_location','maximum_capacity']
+        fields = ['event_name', 'start_time', 'end_time', 'info', 'community', 'society', 'location_type', 'actual_location','maximum_capacity','required_materials']
 
     current_time = timezone.now()
 

@@ -52,6 +52,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+
 ]
 
 ROOT_URLCONF = 'project.urls'
@@ -154,3 +157,9 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+#session settings
+SESSION_COOKIE_AGE = 120  # cookie age in seconds (2 minutes)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True # close browser to expire session
+SESSION_SAVE_EVERY_REQUEST = True #save every request to update the expiry time
+LOGIN_URL = '/login/'  # URL to redirect to when login is required

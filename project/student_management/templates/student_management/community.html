@@ -7,6 +7,17 @@
     <title>Communities</title>
     <link rel="stylesheet" href="{% static 'css/events.css' %}">
 </head>
+<style>
+
+    .tag{
+        background-color: #e0e0e0;
+        color: #333;
+        padding: 5px 10px;
+        border-radius: 5px;
+        margin-right: 5px;
+        font-size: 15px;
+    }
+    </style>
 <body>
         {% if messages %}
         <div class="messages">
@@ -46,54 +57,85 @@
         <form method="get" action="{% url 'community' %}" style="margin-bottom: 20px;">
             <input type="text" name="search" placeholder="Search communities..." value="{{ query }}" style="padding: 6px; width: 200px;">
             <select name="filter" style="padding: 6px;">
+                <!-- filter options default all  -->
                 <option value="all" {% if filter_option == 'all' %}selected{% endif %}>All</option>
+                <option value="joined" {% if filter_option == 'joined' %}selected{% endif %}>Joined</option>
                 <option value="my_requests" {% if filter_option == 'my_requests' %}selected{% endif %}>My Requests</option>
             </select>
+            {% if filter_option == 'my_requests' %}
+            <!-- filter for status requests shows only if my request is pressed -->
+            <select name="status" style="padding: 6px;">
+                <option value="">All Statuses</option>
+                <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+                <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+            {% endif %}
             <button type="submit" style="padding: 6px 12px;">Search</button>
         </form>
-
-        <h2>Communities</h2>
+        <!-- Link to request new community -->
+        <li><a href="{% url 'request-community' %}">Request new community</a></li>
         <div class="card-container">
             {% for community in communities %}
                     <div class="card">
                         <h3>{{ community.community_name }}</h3>
                 
                         {% if community.community_id %}
-                            <!-- It's a Community -->
+                            <!-- Displays community information -->
                             <p><strong>Leader:</strong> {{ community.com_leader }}</p>
                             <p>{{ community.description }}</p>
-                            <p>{{ community.purpose }}</p>
-                
+                            {% comment %} gets the interests for specific community and displays as a tag{% endcomment %}
+                            {% if community.interests.all %}
+                            {% for interest in community.interests.all %}
+                                <span class="tag">{{ interest.interest_name }}</span>{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {% comment %} get interests from approved community request with same name  {% endcomment %}
+                            {% for request in approved_requests %}
+                                {% if request.community_name == community.community_name %}
+                                    {% for interest in request.interests.all %}
+                                        <span class="tag">{{ interest.interest_name }}</span>{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}          
+                        <br>            
+                            <!-- join button and cancel button logic -->
                             {% if user.is_authenticated %}
                                 {% if community.community_id in joined_ids %}
-                                    <p style="color: purple; font-weight: bold;">✔ Joined</p>
-                                {% else %}
-                                    <form method="post" action="{% url 'join_community' community.community_id %}">
-                                        {% csrf_token %}
-                                        <button type="submit" style="margin-top: 10px; padding: 5px 10px; background-color: #426596; color: white; border: none; border-radius: 5px;">
-                                            Join Community
-                                        </button>
-                                    </form>
-                                {% endif %}
-                            {% endif %}
-                
-                        {% else %}
-                            <!-- It's a CommunityRequest -->
-                            <p><strong>Requested by:</strong> {{ community.requester }}</p>
-                            <p>{{ community.description }}</p>
-                            <p><strong>Status:</strong> {{ community.status }}</p>
+                                <p style="color: purple; font-weight: bold; float: left;">✔ Joined</p>
+                                <form method="post" action="{% url 'cancel_community' community.community_id %}" style="float: right;">
+                                    {% csrf_token %}
+                                    <button type="submit" style="padding: 6px 12px; background-color: crimson; color: white; border: none; border-radius: 4px;">
+                                        Cancel Membership
+                                    </button>
+                                </form>
+                            {% else %}
+                            <form method="post" action="{% url 'join_community' community.community_id %}">
+                                {% csrf_token %}
+                                <button type="submit" style="margin-top: 10px; padding: 5px 10px; background-color: #426596; color: white; border: none; border-radius: 5px;">
+                                    Join Community
+                                </button>
+                            </form>
                         {% endif %}
-                    </div>
-                {% empty %}
-                    <p>No communities found.</p>
-                {% endfor %}
-                
-        </div>
-
-        <!-- Link to request new community -->
-        <li><a href="{% url 'request-community' %}">Request new community</a></li>
-
+                    {% endif %}
+        
+                {% else %}
+                <!-- It's a CommunityRequest -->
+                    <p><strong>Requested by:</strong> {{ community.requester }}</p>
+                    <p>{{ community.description }}</p>
+                    <p><strong>Status:</strong> {{ community.status }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p>No communities found.</p>
+            {% endfor %}
+            
     </div>
+
+    
+
+</div>
 </div>
 
 </body>

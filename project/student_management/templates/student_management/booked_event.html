@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <title>My Booked Events</title>
     <link rel="stylesheet" href="{% static 'css/events.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
 
 <body>
@@ -50,6 +51,7 @@
         {% if booked %}
             <div class="card-container">
                 {% for booking in booked %}
+                {% comment %} displays booked details for specific user  {% endcomment %}
                     <div class="card">
                         <div class="event-header">
                             <h2>{{ booking.event.event_name }}</h2>
@@ -59,10 +61,11 @@
                         <div class="event-body">
                             <p class="event-description">{{ booking.event.info }}</p>
                         </div>
-
+                        <br>
+                        {% comment %} would show the cancel booking button  {% endcomment %}
                         <form action="{% url 'cancel_booking' booking.event.event_id %}" method="POST">
                             {% csrf_token %}
-                            <button type="submit" class="cancel-button" onclick="return confirmLinkClick()">Cancel Booking</button>
+                            <button type="submit" class="cancel-button" style="background-color: crimson; color: white;" onclick="return confirmLinkClick()">Cancel Booking</button>
                         </form>
                     </div>
                 {% endfor %}
@@ -72,7 +75,7 @@
         {% endif %}
     </div>
 </div>
-
+{% comment %} message log in js  {% endcomment %}
 <script>
     function confirmLinkClick() {
         return confirm("Are you sure you want to cancel booking?");

@@ -16,7 +16,7 @@ from .views import (
     admin_community_requests, approve_community_request, reject_community_request,
     join_society, leave_society, join_community, societies_view,
     AdminSocietyRequestsView, CommentViewSet,
-    add_comment, delete_comment,
+    add_comment, delete_comment,cancel_membership,
     friends_page, send_friend_request, accept_friend_request, reject_friend_request, remove_friend
 )
 
@@ -49,6 +49,7 @@ urlpatterns = [
     path('community/', community, name='community'),
     path('request-community/', CommunityRequestCreateView.as_view(), name='request-community'),
     path('join-community/<int:community_id>/', join_community, name='join_community'),
+    path('cancel_community/<int:community_id>/', views.cancel_membership, name='cancel_community'),
 
     # Societies
     path('societies/', societies_view, name='societies'),

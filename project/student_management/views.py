@@ -230,6 +230,9 @@ def login_view(request):
             return redirect('home')
         else:
             return render(request, 'student_management/login.html', {'error': 'Invalid email or password'})
+    
+    if 'next' in request.GET:
+        messages.warning(request, "Your session has expired. Please log in again.") #session expired message
     return render(request, 'student_management/login.html')
 
 def logout_view(request):
@@ -242,15 +245,19 @@ def logout_view(request):
 
 @login_required
 def events(request):
+    #filters and searches for events
     query = request.GET.get('search', '')
     filter_option = request.GET.get('filter', '')
     society_filter = request.GET.get('society', '')
     community_filter = request.GET.get('community', '')
-
+    # Get the list of approved communities, community requests and societies
     approved_communities = Community.objects.filter(is_approved=True)
     community_requests = CommunityRequest.objects.filter(status='approved')
-    events = Event.objects.filter(start_time__gte=timezone.now(), is_approved=True, community__in=approved_communities).order_by('-start_time')
+    approved_societies = Society.objects.filter(is_approved=True)   
+    # Get the list of events that are approved and upcoming
+    events = Event.objects.filter(start_time__gte=timezone.now(), is_approved=True).order_by('-start_time')
 
+    # Filter events based on the search query and filter options
     if query:
         events = events.filter(
             Q(event_name__icontains=query) |
@@ -272,10 +279,12 @@ def events(request):
         if selected_community:
             community_requests = community_requests.filter(community_name=selected_community.community_name)
 
+    #checks if the user already books the event
     booked_event_ids = EventDetails.objects.filter(user=request.user, can_book=True).values_list('event__event_id', flat=True)
 
-
-    societies = Society.objects.all()
+    # Get the list of societies
+    societies = approved_societies
+    # Get the list of communities
     communities = approved_communities
     
     for event in events:
@@ -299,51 +308,69 @@ def events(request):
         'booked_event_ids': booked_event_ids,  # Send it to the template
     })
 
+
 class EventRequestCreateView(LoginRequiredMixin, CreateView):
+    #event form 
     model = Event
     form_class = EventForm
     template_name = 'student_management/event_form.html'
     success_url = reverse_lazy('events')
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        #filter only approved societies
+        form.fields['society'].queryset = Society.objects.filter(is_approved=True)
+        return form
 
     def form_valid(self, form):
         form.instance.requester = self.request.user
         response = super().form_valid(form)
-        
+        # Create a notification for the user
         create_notification(
             self.request.user,
             f"Your event request for '{form.instance.event_name}' has been submitted and is awaiting approval.",
             'info'
         )
 
-        messages.success(self.request, f"✅ Your event request '{form.instance.event_name}' has been submitted!")
+        messages.success(self.request, f"Your event request '{form.instance.event_name}' has been submitted!")
         return response
 
 
 
 
-@login_required
 def booked_events(request):
-    booked = EventDetails.objects.filter(user_id=request.user.user_id, can_book=True)
-    return render(request, "student_management/booked_event.html", {'booked': booked})
-
+    booked = EventDetails.objects.filter(
+        #filters booked events for the user
+        #also shows bookings that are still active 
+        user_id=request.user.user_id,can_book=True,event__start_time__gte=timezone.now()  
+    ).select_related('event').order_by('event__start_time') #sorts by start time
+    
+    #render the booked events in html
+    return render(request, "student_management/booked_event.html", {
+        'booked': booked
+    })
+    
 @login_required
 def booked(request, event_id):
     event = get_object_or_404(Event, event_id=event_id)
     user = request.user
-    
+
+    #counts how many ppl booked the event
     current_bookings = EventDetails.objects.filter(event=event, can_book=True).count()
-    
+    #checks if the event is fully booked 
     if event.maximum_capacity is not None and current_bookings >= event.maximum_capacity:
         messages.error(request, f"⚠️ Sorry, '{event.event_name}' is fully booked.")
         return redirect('events')
 
+    #checks if the user already booked the event
     if not EventDetails.objects.filter(event=event, user=user, can_book=True).exists():
-        EventDetails.objects.create(event=event, user=user)
+        EventDetails.objects.create(event=event, user=user) #adds entry to the EventDetails table
+        #creates a notification for the user when they book an event
         create_notification(user, f"You booked the event '{event.event_name}'!", 'success')
         messages.success(request, f"✅ You have successfully booked '{event.event_name}'!")
     else:
         messages.info(request, f"ℹ️ You already booked '{event.event_name}'.")
-
+    
     return redirect('events')
 
 
@@ -351,48 +378,99 @@ def booked(request, event_id):
 def cancel_booking(request, event_id):
     event = get_object_or_404(Event, event_id=event_id)
     user = request.user
-
+    #gets the booking entry for the user and event
     booking = EventDetails.objects.filter(event=event, user=user, can_book=True).first()
-    if booking:
-        booking.can_book = False
-        booking.save()
+    if booking: #checks if the booking exists
+        booking.can_book = False #sets the booking to false
+        booking.save() #saves the changes to the database
+        #creates a notification for the user when they cancel a booking
         create_notification(user, f"You canceled booking for '{event.event_name}'.", 'info')
-        messages.success(request, f"❌ You canceled your booking for '{event.event_name}'.")
+        messages.success(request, f"You canceled your booking for '{event.event_name}'.")
     else:
-        messages.error(request, "⚠️ You don't have a booking for this event.")
+        messages.error(request, "You don't have a booking for this event.")
 
     return redirect('booked_events')
 
 
 @login_required
 def community(request):
+    #filters and searches for communities
     search_query = request.GET.get('search', '')
     filter_option = request.GET.get('filter', '')
+    requests_status = request.GET.get('status', '')
 
     communities = Community.objects.filter(is_approved=True)
-    community_requests = CommunityRequest.objects.filter(status='Approved')
-    all_requests = CommunityRequest.objects.all()
+    approved_requests = CommunityRequest.objects.filter(status='approved')
+    community_requests = []
 
+    #search query for communities
     if search_query:
         communities = communities.filter(
             Q(community_name__icontains=search_query) |
-            Q(description__icontains=search_query)
-        )
-        community_requests = community_requests.filter(
-            Q(community_name__icontains=search_query) |
-            Q(description__icontains=search_query)
-        )
+            Q(description__icontains=search_query) |
+            Q(interests__interest_name__icontains=search_query)
+        ).distinct()
 
-    if filter_option == 'my_requests':
+    #added the filter for my requests for specific users so they can easily find it and cancel it
+    if filter_option == 'my_requests' and request.user.is_authenticated:
         communities = communities.filter(com_leader=request.user)
-        community_requests = all_requests.filter(requester_id=request.user)
+        community_requests = CommunityRequest.objects.filter(requester=request.user)
 
+        #filters requests status for community requests
+        if requests_status:
+            community_requests = community_requests.filter(status=requests_status)
+        #search query for community requests
+        if search_query:
+            communities = communities.filter(
+                Q(community_name__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(interests__interest_name__icontains=search_query)
+            ).distinct()
+
+    #added the filter for joined communities for specific users so they can easily find it and cancel it 
+    if filter_option == 'joined' and request.user.is_authenticated:
+        communities = communities.filter(communitymembership__user=request.user)
+        
+        #search query for joined communities
+        if search_query:
+            communities = communities.filter(
+                Q(community_name__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(interests__interest_name__icontains=search_query)
+            ).distinct()
+    
+    #this is for all filter options
     combined = list(chain(communities, community_requests))
 
+    # Create a set of community IDs that the current user has joined
+    joined_ids = set()
+    # If the user is authenticated get the IDs of communities they are a member of
+    if request.user.is_authenticated:
+        joined_ids = set(
+            CommunityMembership.objects.filter(user=request.user)
+            .values_list('community__community_id', flat=True)
+        )
+    #RENDER THIS IN THE HTML 
     return render(request, 'student_management/community.html', {
-        'communities': combined
+        'communities': combined,
+        'joined_ids': joined_ids,
+        'query': search_query,
+        'filter_option': filter_option,
+        'requests_status': requests_status,
+        'approved_requests': approved_requests, 
     })
 
+def cancel_membership(request, community_id):
+    community = get_object_or_404(Community, pk=community_id)
+    membership = CommunityMembership.objects.filter(user=request.user, community=community).first() 
+    
+    if membership:
+        membership.delete()
+        messages.success(request, f"You have left the community '{community.community_name}'.")
+    else:
+        messages.info(request, "You are not a member of this community.")
+    
+    return redirect('community')
 
 class CommunityRequestCreateView(LoginRequiredMixin, CreateView):
     model = CommunityRequest
@@ -412,9 +490,6 @@ class CommunityRequestCreateView(LoginRequiredMixin, CreateView):
 
         messages.success(self.request, "Your request has been submitted!")
         return response
-
-
-
 
 
 @login_required

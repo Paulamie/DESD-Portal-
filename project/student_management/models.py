@@ -89,20 +89,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.user_id
 
 
-# === Community ===
-class Community(models.Model):
-    is_approved = models.BooleanField(default=False)
-    community_id = models.AutoField(primary_key=True)
-    com_leader = models.CharField(max_length=255)
-    community_name = models.CharField(max_length=100)
-    description = models.TextField()
-    purpose = models.TextField(blank=True, null=True)
-
-    class Meta:
-        db_table = "Community"
-
-    def __str__(self):
-        return self.community_name
 
 # === Interest ===
 class Interest(models.Model):
@@ -114,7 +100,22 @@ class Interest(models.Model):
 
     def __str__(self):
         return self.interest_name
+# === Community ===
+class Community(models.Model):
+    is_approved = models.BooleanField(default=False)
+    community_id = models.AutoField(primary_key=True)
+    com_leader = models.CharField(max_length=255)
+    community_name = models.CharField(max_length=100)
+    description = models.TextField()
+    purpose = models.TextField(blank=True, null=True)
+    interests = models.ManyToManyField(Interest, blank=True) 
 
+    class Meta:
+        db_table = "Community"
+
+    def __str__(self):
+        return self.community_name
+    
 # === Society (with members + is_approved + is_featured) ===
 class Society(models.Model):
     society_id = models.AutoField(primary_key=True)
@@ -176,18 +177,14 @@ class Event(models.Model):
     info = models.TextField()
     community = models.ForeignKey(Community, on_delete=models.SET_NULL, null=True, blank=True)
     society = models.ForeignKey(Society, on_delete=models.SET_NULL, null=True, blank=True)
+    required_materials= models.TextField(null=True, blank=True)
 
     LOCATION_CHOICES = [
         ('Online', 'Online'),
         ('On-Campus', 'On-Campus'),
     ]
 
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ]
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+
     location_type = models.CharField(max_length=20, choices=LOCATION_CHOICES, default='On-Campus')
     actual_location = models.CharField(max_length=255, blank=True, null=True)
     maximum_capacity = models.PositiveIntegerField(null=True, blank=True)
