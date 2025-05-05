@@ -87,8 +87,8 @@
                             {% comment %} gets the interests for specific community and displays as a tag{% endcomment %}
                             {% if community.interests.all %}
                             {% for interest in community.interests.all %}
-                                <span class="tag">{{ interest.interest_name }}</span>{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
+                            <span class="tag">{{ interest.interest_name }}</span>
+                        {% endfor %}
                         {% else %}
                             {% comment %} get interests from approved community request with same name  {% endcomment %}
                             {% for request in approved_requests %}
