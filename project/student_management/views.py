@@ -337,7 +337,7 @@ class EventRequestCreateView(LoginRequiredMixin, CreateView):
 
 
 
-
+@login_required
 def booked_events(request):
     booked = EventDetails.objects.filter(
         #filters booked events for the user
@@ -459,6 +459,7 @@ def community(request):
         'requests_status': requests_status,
         'approved_requests': approved_requests, 
     })
+
 
 def cancel_membership(request, community_id):
     community = get_object_or_404(Community, pk=community_id)
