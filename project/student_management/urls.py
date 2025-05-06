@@ -19,6 +19,7 @@ from .views import (
     add_comment, delete_comment,cancel_membership,
     friends_page, send_friend_request, accept_friend_request, reject_friend_request, remove_friend
 )
+from .views import CommentViewSet
 
 # REST Framework router
 router = DefaultRouter()
@@ -78,10 +79,11 @@ urlpatterns = [
 
     # Search
     path('search-posts/', search_posts, name='search_posts'),
-
-    # Comments
-    path('add_comment/', add_comment, name='add_comment'),
-    path('comment/<int:comment_id>/delete/', delete_comment, name='delete_comment'),
+    
+    #comments 
+     path('', include(router.urls)),
+     path('add_comment/', views.add_comment, name='add_comment'),
+     path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
 
     # API Auth
     path('api/', include(router.urls)),

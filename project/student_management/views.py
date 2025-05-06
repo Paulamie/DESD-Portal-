@@ -53,6 +53,7 @@ from django.shortcuts import render, redirect
 from datetime import datetime
 from .forms import UpdateRequestForm
 from .models import UpdateRequest
+from .models import Post
 
 # Notifications and Email
 
