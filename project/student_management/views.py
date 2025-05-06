@@ -133,18 +133,20 @@ def send_pretty_email(user, subject, message):
         </div>
     </div>
     """
-
-    try:
-        send_mail(
-            subject=subject,
-            message="This is a plain-text fallback for non-HTML clients.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_content,
-            fail_silently=False,
-        )
-    except Exception as e:
-        print(f"[Email Error] Failed to send email to {user.email}: {e}")
+    if not settings.DEBUG:
+        try:
+            send_mail(
+                subject=subject,
+                message="This is a plain-text fallback for non-HTML clients.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_content,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"[Email Error] Failed to send email to {user.email}: {e}")
+    else:
+        print(f"[EMAIL MOCK] To: {user.email} | Subject: {subject} | Message: {message}")
 
 
 # Home Views
