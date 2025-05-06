@@ -163,8 +163,8 @@
                         </div>
 
                     <!-- Comment Form -->
-                     <button class="btn btn-sm btn-primary mt-2" onclick="toggleCommentBox('{{ post.id }}')">Comment</button>
-                     <div id="comment-box-{{ post.id }}" style="display:none; margin-top:10px;">
+                     <button class="btn btn-sm btn-primary mt-2" onclick="toggleCommentBox('{{ post.post_id}}')">Comment</button>
+                     <div id="comment-box-{{ post.post_id }}" style="display:none; margin-top:10px;">
                          <form method="POST" action="{% url 'add_comment' %}">
                              {% csrf_token %}
                              <input type="hidden" name="post_id" value="{{ post.post_id }}">
