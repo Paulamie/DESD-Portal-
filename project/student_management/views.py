@@ -981,7 +981,7 @@ def add_comment(request):
 
     if post_id and comment_text:
         try:
-            post = Post.objects.get(id=post_id)
+            post = Post.objects.get(post_id=post_id)
             Comment.objects.create(user=request.user, post=post, comment_text=comment_text)
             messages.success(request, "✅ Your comment was posted.")
         except Post.DoesNotExist:
