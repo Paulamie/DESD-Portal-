@@ -17,12 +17,12 @@ BASE_DIR = Path(__file__).resolve().parent
 SECRET_KEY = 'django-insecure-(sn$)6qjm%@basoy0ffsg0v#ne_lpuoyk67n1jp^u5sw6$v*&+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+#ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
-# DEBUG = False #DON'T CHANGE THIS
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'paulamie.pythonanywhere.com'] #DON'T CHANGE THIS.
+DEBUG = False #DON'T CHANGE THIS
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'paulamie.pythonanywhere.com'] #DON'T CHANGE THIS.
 
 
 # Application definition
@@ -77,17 +77,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project.wsgi.application'
 
-# Database
+# Database using environment variables
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '3306'),
-    },
-}
+     'default': {
+         'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'Paulamie$default',
+         'USER': 'Paulamie',
+         'PASSWORD': 'pearl150203',
+         'HOST': 'paulamie.mysql.pythonanywhere-services.com',
+         'PORT': '3306',
+     }
+ }
 
 logger.info(f"Connected to DB: {os.getenv('DB_NAME')} at {os.getenv('DB_HOST')}")
 
