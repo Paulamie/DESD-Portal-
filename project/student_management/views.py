@@ -134,14 +134,17 @@ def send_pretty_email(user, subject, message):
     </div>
     """
 
-    send_mail(
-        subject=subject,
-        message="This is a plain-text fallback for non-HTML clients.",
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        html_message=html_content,
-        fail_silently=False,
-    )
+    try:
+        send_mail(
+            subject=subject,
+            message="This is a plain-text fallback for non-HTML clients.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_content,
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"[Email Error] Failed to send email to {user.email}: {e}")
 
 
 # Home Views
