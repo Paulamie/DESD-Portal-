@@ -197,12 +197,16 @@
         </div>
 
     </div>
-
     <script>
         function toggleCommentBox(postId) {
+            // Hide all boxes first
+            const allBoxes = document.querySelectorAll('[id^="comment-box-"]');
+            allBoxes.forEach(box => box.style.display = "none");
+    
+            // Then toggle the selected one
             const box = document.getElementById('comment-box-' + postId);
             if (box) {
-                box.style.display = box.style.display === "none" ? "block" : "none";
+                box.style.display = "block";
             }
         }
     </script>
