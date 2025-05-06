@@ -79,11 +79,10 @@ urlpatterns = [
 
     # Search
     path('search-posts/', search_posts, name='search_posts'),
-    
-    #comments 
-     path('', include(router.urls)),
-     path('add_comment/', views.add_comment, name='add_comment'),
-     path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
+
+    # Comments
+    path('add_comment/', add_comment, name='add_comment'),
+    path('comment/<int:comment_id>/delete/', delete_comment, name='delete_comment'),
 
     # API Auth
     path('api/', include(router.urls)),

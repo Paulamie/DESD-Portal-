@@ -53,7 +53,6 @@ from django.shortcuts import render, redirect
 from datetime import datetime
 from .forms import UpdateRequestForm
 from .models import UpdateRequest
-from .models import Post
 
 # Notifications and Email
 
@@ -989,6 +988,8 @@ def add_comment(request):
         messages.error(request, "Invalid form submission.")
 
     return redirect("home")
+
+
 
 from rest_framework import permissions, viewsets
 from .models import Comment
