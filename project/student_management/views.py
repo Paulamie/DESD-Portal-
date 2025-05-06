@@ -968,21 +968,26 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from .models import Comment, Post
 
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+
 @require_POST
 @login_required
 def add_comment(request):
-    post_id = request.POST.get('post_id')
-    comment_text = request.POST.get('comment_text')
+    post_id = request.POST.get("post_id")
+    comment_text = request.POST.get("comment_text")
 
     if post_id and comment_text:
-        post = get_object_or_404(Post, pk=post_id)
-        Comment.objects.create(
-            post=post,
-            user=request.user,
-            comment_text=comment_text
-        )
+        try:
+            post = Post.objects.get(id=post_id)
+            Comment.objects.create(user=request.user, post=post, content=comment_text)
+            messages.success(request, "✅ Your comment was posted.")
+        except Post.DoesNotExist:
+            messages.error(request, "Post not found.")
+    else:
+        messages.error(request, "Invalid form submission.")
 
-    return redirect('home') 
+    return redirect("home")
 
 from rest_framework import permissions, viewsets
 from .models import Comment
