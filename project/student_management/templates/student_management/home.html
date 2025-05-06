@@ -143,55 +143,55 @@
             <h3 class="post-title">Latest Posts</h3>
             <div class="latest-posts">
                 {% for post in posts %}
-                <div class="post-example">
-                    <div class="post-user">
-                        {{ post.user.first_name }} said:
-                    </div>
-                    <div class="post-content">
-                        {% if post.content|length > 200 %}
-                            {{ post.content|slice:":200" }}...
-                            <a href="{% url 'search_posts' %}?search={{ post.content|urlencode }}" style="font-size: 12px;">Show More</a>
-                        {% else %}
-                            {{ post.content }}
-                        {% endif %}
-                    </div>
-                    <div class="post-date">
-                        {{ post.timestamp|date:"M d, Y H:i" }}
-                    </div>
+                    <div class="post-example">
+                        <div class="post-user">
+                            {{ post.user.first_name }} said:
+                        </div>
+                        <div class="post-content">
+                            {% if post.content|length > 200 %}
+                                {{ post.content|slice:":200" }}...
+                                <a href="{% url 'search_posts' %}?search={{ post.content|urlencode }}" style="font-size: 12px;">Show More</a>
+                            {% else %}
+                                {{ post.content }}
+                            {% endif %}
+                        </div>
+                        <div class="post-date">
+                            {{ post.timestamp|date:"M d, Y H:i" }}
+                        </div>
 
-                   <!-- USE post.id for all three -->
-                    <button class="btn btn-sm btn-primary mt-2" onclick="toggleCommentBox('{{ post.id }}')">Comment</button>
-                    <div id="comment-box-{{ post.id }}" style="display:none; margin-top:10px;">
-                        <form method="POST" action="{% url 'add_comment' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="post_id" value="{{ post.id }}">
-                            <textarea name="comment_text" rows="2" placeholder="Write a comment..." required></textarea>
-                            <button class="btn-post" type="submit">Post Comment</button>
-                        </form>
-                    </div>
+                    <!-- USE post.id for all three -->
+                        <button class="btn btn-sm btn-primary mt-2" onclick="toggleCommentBox('{{ post.id }}')">Comment</button>
+                        <div id="comment-box-{{ post.id }}" style="display:none; margin-top:10px;">
+                            <form method="POST" action="{% url 'add_comment' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                <textarea name="comment_text" rows="2" placeholder="Write a comment..." required></textarea>
+                                <button class="btn-post" type="submit">Post Comment</button>
+                            </form>
+                        </div>
 
-                    <div style="margin-top:10px; margin-left:20px;">
-                        {% for comment in post.comment_set.all %}
-                            <div style="background-color: #eef5ff; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
-                                <strong>{{ comment.user.first_name }} {{ comment.user.last_name }}</strong> said:
-                                <div style="margin: 4px 0 6px 10px;">{{ comment.comment_text }}</div>
-                                <small style="color: #666;">{{ comment.created_at|date:"M d, Y H:i" }}</small>
-                                {% if comment.user == user %}
-                                    <form method="POST" action="{% url 'delete_comment' comment.id %}" style="display:inline;">
-                                        {% csrf_token %}
-                                        <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this comment?')">Delete</button>
-                                    </form>
-                                {% endif %}
-                            </div>
-                        {% empty %}
-                            <p style="margin-left:10px; font-style: italic; color: #555;">No comments yet.</p>
-                        {% endfor %}
-                    </div>
+                        <div style="margin-top:10px; margin-left:20px;">
+                            {% for comment in post.comment_set.all %}
+                                <div style="background-color: #eef5ff; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                                    <strong>{{ comment.user.first_name }} {{ comment.user.last_name }}</strong> said:
+                                    <div style="margin: 4px 0 6px 10px;">{{ comment.comment_text }}</div>
+                                    <small style="color: #666;">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+                                    {% if comment.user == user %}
+                                        <form method="POST" action="{% url 'delete_comment' comment.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this comment?')">Delete</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            {% empty %}
+                                <p style="margin-left:10px; font-style: italic; color: #555;">No comments yet.</p>
+                            {% endfor %}
+                        </div>
 
-                    <p><strong>Comment count:</strong> {{ post.comment_set.count }}</p>
-                </div>
-                {% empty %}
-                    <p>No posts available.</p>
+                        <p><strong>Comment count:</strong> {{ post.comment_set.count }}</p>
+                    </div>
+                    {% empty %}
+                        <p>No posts available.</p>
                 {% endfor %}
             </div>
         </div>

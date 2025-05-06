@@ -974,13 +974,15 @@ from django.contrib import messages
 @require_POST
 @login_required
 def add_comment(request):
+    print("POST received: ", request.POST)
+    
     post_id = request.POST.get("post_id")
     comment_text = request.POST.get("comment_text")
 
     if post_id and comment_text:
         try:
             post = Post.objects.get(id=post_id)
-            Comment.objects.create(user=request.user, post=post, content=comment_text)
+            Comment.objects.create(user=request.user, post=post, comment_text=comment_text)
             messages.success(request, "✅ Your comment was posted.")
         except Post.DoesNotExist:
             messages.error(request, "Post not found.")
