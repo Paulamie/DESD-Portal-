@@ -165,7 +165,7 @@
                             
                             <form method="POST" action="{% url 'add_comment' %}">
                                 {% csrf_token %}
-                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                <input type="hidden" name="post_id" value="{{ post.post.id }}">
                                 <textarea name="comment_text" rows="2" placeholder="Write a comment..." required></textarea>
                                 <button class="btn-post" type="submit">Post Comment</button>
                             </form>
