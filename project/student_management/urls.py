@@ -20,6 +20,9 @@ from .views import (
     friends_page, send_friend_request, accept_friend_request, reject_friend_request, remove_friend
 )
 from .views import CommentViewSet
+from django.urls import path
+from django.http import HttpResponse
+from django.core.mail import send_mail
 
 # REST Framework router
 router = DefaultRouter()
@@ -30,6 +33,16 @@ router.register(r'search-events', EventSearchViewSet, basename='search-events')
 router.register(r'search-communities', CommunitySearchViewSet, basename='search-communities')
 router.register(r'search-posts', PostSearchViewSet, basename='search-posts')
 router.register(r'comments', CommentViewSet, basename='comments')
+
+def test_email(request):
+    send_mail(
+        '🚀 Test Email from Django (Docker)',
+        'Hey Jana! This is a test email sent from your local Django app running in Docker. 🎉',
+        'uweunihub@gmail.com',
+        ['jana.tarek888@hotmail.com'],
+        fail_silently=False,
+    )
+    return HttpResponse('Email sent successfully to jana.tarek888@hotmail.com')
 
 urlpatterns = [
     # Public and Auth
@@ -92,6 +105,8 @@ urlpatterns = [
 
     # Test email
     path('send-test-email/', send_test_email, name='send_test_email'),
+
+    path('send-test-email/', test_email),
 ]
 
 if settings.DEBUG:

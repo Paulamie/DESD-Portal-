@@ -170,3 +170,35 @@ textarea:focus, select:focus, button:focus, input:focus {
     outline: 3px solid #FFD700;
     outline-offset: 2px;
 }
+
+.tag-link {
+    display: inline-block;
+    background-color: #e1f5fe;
+    color: #003366;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    text-decoration: none;
+    margin: 5px 5px 0 0;
+    transition: background-color 0.3s ease;
+}
+
+.tag-link:hover {
+    background-color: #cbe8fc;
+}
+
+.clear-tag-button {
+    background-color: #ffcccc;
+    color: #990000;
+    padding: 5px 12px;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.85em;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.clear-tag-button:hover {
+    background-color: #ffaaaa;
+}

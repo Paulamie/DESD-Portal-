@@ -23,6 +23,13 @@
                 });
             });
         });
+
+        function clearTagFilter() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('tag');
+            window.location.href = url.toString();
+        }
+
     </script>
 </head>
 <body>
@@ -55,17 +62,18 @@
 </div>
 {% endif %}
 
-<!-- ✅ Tag Filter with sort preservation -->
 <div class="tag-filter">
     <p>Filter by tag:</p>
     <div class="tag-list">
         {% for tag in all_tags %}
-            <a class="tag-link" href="?{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}tag={{ tag.name }}">{{ tag.name }}</a>
-        {% empty %}
-            <p>No tags available.</p>
+            <a class="tag-link" href="?{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}tag={{ tag.interest_name }}">{{ tag.interest_name }}</a>
         {% endfor %}
+        {% if request.GET.tag %}
+            <button onclick="clearTagFilter()" class="clear-tag-button">Clear Tag ✖</button>
+        {% endif %}
     </div>
 </div>
+
 
 <div class="outer-container">
     <div class="main-content">
@@ -118,7 +126,7 @@
                         {% endif %}
                         <div class="society-tags">
                             {% for tag in society.interests.all %}
-                                <span class="tag">{{ tag.name }}</span>
+                                <span class="tag">{{ tag.interest_name }}</span>
                             {% endfor %}
                         </div>
                         <div class="society-body">
@@ -184,7 +192,7 @@
                         {% endif %}
                         <div class="society-tags">
                             {% for tag in society.interests.all %}
-                                <span class="tag">{{ tag.name }}</span>
+                                <span class="tag">{{ tag.interest_name }}</span>
                             {% endfor %}
                         </div>
                         <div class="card-actions">

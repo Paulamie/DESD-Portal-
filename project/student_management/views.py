@@ -133,20 +133,29 @@ def send_pretty_email(user, subject, message):
         </div>
     </div>
     """
-    if not settings.DEBUG:
-        try:
-            send_mail(
-                subject=subject,
-                message="This is a plain-text fallback for non-HTML clients.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=html_content,
-                fail_silently=False,
-            )
-        except Exception as e:
-            print(f"[Email Error] Failed to send email to {user.email}: {e}")
-    else:
-        print(f"[EMAIL MOCK] To: {user.email} | Subject: {subject} | Message: {message}")
+    send_mail(
+        subject=subject,
+        message="This is a plain-text fallback for non-HTML clients.",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        html_message=html_content,
+        fail_silently=False,
+    )
+    
+    # if not settings.DEBUG:
+    #     try:
+    #         send_mail(
+    #             subject=subject,
+    #             message="This is a plain-text fallback for non-HTML clients.",
+    #             from_email=settings.DEFAULT_FROM_EMAIL,
+    #             recipient_list=[user.email],
+    #             html_message=html_content,
+    #             fail_silently=False,
+    #         )
+    #     except Exception as e:
+    #         print(f"[Email Error] Failed to send email to {user.email}: {e}")
+    # else:
+    #     print(f"[EMAIL MOCK] To: {user.email} | Subject: {subject} | Message: {message}")
 
 
 # Home Views
@@ -566,7 +575,7 @@ def societies_view(request):
     )
 
     if tag_filter:
-        new_societies = new_societies.filter(interests__name=tag_filter)
+        new_societies = new_societies.filter(interests__interest_name=tag_filter)
 
     if sort == 'popular':
         new_societies = new_societies.annotate(num_members=Count('members')).order_by('-num_members')
