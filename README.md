@@ -94,7 +94,6 @@ DESD-main/
 - **Python 3**
 - **Django**
 - **Docker & Docker Compose**
-- **Gunicorn (for deployment)**
 - **PythonAnywhere (for hosting)**
 
 ---
