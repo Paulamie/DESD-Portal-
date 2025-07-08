@@ -94,13 +94,13 @@ DESD-main/
 - **Python 3**
 - **Django**
 - **Docker & Docker Compose**
+- **MySQL**
 - **PythonAnywhere (for hosting)**
 
 ---
 
 ## ✅ Future Improvements
 
-- Add user authentication & profile pages
 - Integrate cloud storage or database backups
 - Include unit testing and CI/CD setup
 - Improve frontend responsiveness
