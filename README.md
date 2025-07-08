@@ -1,23 +1,112 @@
-# DESD
 
-cloud link : http://paulamie.pythonanywhere.com 
+# DESD Portal
 
-you can access this cloud link on any machine 
+**Live demo:**  
+🔗 http://paulamie.pythonanywhere.com
 
+Accessible from any device with an internet connection.
 
-DOCKER SETTINGS!!!
+---
 
+## 📦 Overview
 
-# Remove old containers + volume to avoid conflicts
+**DESD Portal** is a Django-based web application deployed using Docker. The platform is designed to support user interaction, content management, and backend data handling. It is fully containerized using `docker-compose` and easily deployable both locally and to cloud platforms like PythonAnywhere.
+
+---
+
+## 🚀 Features
+
+- Full-stack Django web application
+- Modular project structure
+- Dockerized for easy setup and deployment
+- PostgreSQL (or SQLite by default) as backend database
+- Admin interface for managing models
+- Ready-to-deploy to platforms like PythonAnywhere
+
+---
+
+## 🐳 Docker Setup Instructions
+
+### 1. Remove old containers and volumes (if needed)
+```bash
 docker-compose down -v
+```
 
-# Start fresh containers with the new image
+### 2. Build and start fresh containers
+```bash
 docker-compose up --build
+```
 
-# To migrate the information 
+### 3. Run migrations
+```bash
 docker-compose exec web python manage.py makemigrations
 docker-compose exec web python manage.py migrate
+```
 
+---
 
+## 💡 Development
 
+To run the project locally without Docker:
+
+1. Install dependencies:
+   ```bash
+   pip install -r project/requirements.txt
+   ```
+
+2. Run migrations:
+   ```bash
+   python project/manage.py makemigrations
+   python project/manage.py migrate
+   ```
+
+3. Start the server:
+   ```bash
+   python project/manage.py runserver
+   ```
+
+Visit `http://localhost:8000` in your browser.
+
+---
+
+## 📁 Project Structure
+
+```
+DESD-main/
+├── project/
+│   ├── manage.py
+│   ├── project/
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   ├── static/
+│   ├── templates/
+│   └── requirements.txt
+├── docker-compose.yml
+├── Dockerfile
+└── README.md
+```
+
+---
+
+## 🛠️ Tools & Tech
+
+- **Python 3**
+- **Django**
+- **Docker & Docker Compose**
+- **Gunicorn (for deployment)**
+- **PythonAnywhere (for hosting)**
+
+---
+
+## ✅ Future Improvements
+
+- Add user authentication & profile pages
+- Integrate cloud storage or database backups
+- Include unit testing and CI/CD setup
+- Improve frontend responsiveness
+
+---
+
+Part of a cloud deployment and system development coursework.
 
