@@ -95,6 +95,7 @@ DESD-main/
 - **Django**
 - **Docker & Docker Compose**
 - **MySQL**
+- **HTML and CSS**
 - **PythonAnywhere (for hosting)**
 
 ---
