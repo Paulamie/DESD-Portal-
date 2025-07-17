@@ -10,18 +10,20 @@ Accessible from any device with an internet connection.
 
 ## 📦 Overview
 
-**DESD Portal** is a Django-based web application deployed using Docker. The platform is designed to support user interaction, content management, and backend data handling. It is fully containerized using `docker-compose` and easily deployable both locally and to cloud platforms like PythonAnywhere.
+**DESD Portal** is a Django-based web application deployed using Docker. The platform is designed to support user interaction, content management, and backend data handling. It is fully containerised using `docker-compose` and easily deployable both locally and to cloud platforms like PythonAnywhere.
 
 ---
 
 ## 🚀 Features
 
-- Full-stack Django web application
-- Modular project structure
-- Dockerized for easy setup and deployment
-- PostgreSQL (or SQLite by default) as backend database
-- Admin interface for managing models
-- Ready-to-deploy to platforms like PythonAnywhere
+- Full-stack **Django** web application  
+- Secure **user authentication** with registration and session management  
+- Pages include: **Events**, **Posts**, **Communities**, **Societies**,  **User Profiles**  and **Friends**
+- **Modular project structure** for easy maintenance and scalability  
+- **Dockerised** for streamlined setup and deployment  
+- Uses **MySQL** as the backend database  
+- Built-in **admin interface** for managing models and content  
+- **Ready for deployment** on platforms like PythonAnywhere  
 
 ---
 
@@ -96,6 +98,7 @@ DESD-main/
 - **Docker & Docker Compose**
 - **MySQL**
 - **HTML and CSS**
+- **Jacascript**
 - **PythonAnywhere (for hosting)**
 
 ---
